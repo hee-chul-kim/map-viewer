@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "read-shp": "ts-node scripts/read-shp.ts",
+    "read-file-path": "ts-node scripts/read-file-path.ts",
+    "test-read-shapefile": "ts-node scripts/test-read-shapefile.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
@@ -22,7 +27,7 @@
     "clsx": "^2.1.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.314.0",
-    "next": "14.1.0",
+    "next": "^15.2.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
@@ -33,6 +38,9 @@
     "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "@types/jest": "^29.5.14",
     "@types/leaflet": "^1.9.8",
     "@types/node": "^20.11.5",
     "@types/react": "^18.2.48",
@@ -40,8 +48,12 @@
     "autoprefixer": "^10.4.17",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.1.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.4.33",
     "tailwindcss": "^3.4.1",
+    "ts-jest": "^29.2.6",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
-} 
+}
