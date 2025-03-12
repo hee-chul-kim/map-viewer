@@ -1,13 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useShapefileStore, Shapefile, ShapefileStyle } from '@/lib/store';
+import { useAtom } from 'jotai';
+import { 
+  shapefilesAtom, 
+  selectedShapefileAtom, 
+  updateShapefileStyleAtom,
+  ShapefileStyle 
+} from '@/lib/store';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { toast } from '@/components/ui/use-toast';
 
 export default function StyleEditor() {
-  const { shapefiles, selectedShapefile, updateShapefileStyle } = useShapefileStore();
+  const [shapefiles] = useAtom(shapefilesAtom);
+  const [selectedShapefile] = useAtom(selectedShapefileAtom);
+  const [, updateShapefileStyle] = useAtom(updateShapefileStyleAtom);
+  
   const [style, setStyle] = useState<ShapefileStyle>({
     color: '#3B82F6',
     weight: 2,
@@ -18,7 +27,7 @@ export default function StyleEditor() {
   // 선택된 shapefile이 변경될 때 스타일 업데이트
   useEffect(() => {
     if (!selectedShapefile) return;
-    
+
     const shapefile = shapefiles.find(sf => sf.id === selectedShapefile);
     if (shapefile) {
       setStyle(shapefile.style);
@@ -28,11 +37,11 @@ export default function StyleEditor() {
   // 스타일 변경 핸들러
   const handleStyleChange = (key: keyof ShapefileStyle, value: string | number) => {
     if (!selectedShapefile) return;
-    
+
     const newStyle = { ...style, [key]: value };
     setStyle(newStyle);
-    updateShapefileStyle(selectedShapefile, { [key]: value });
-    
+    updateShapefileStyle({ id: selectedShapefile, style: { [key]: value } });
+
     toast({
       title: '스타일 업데이트',
       description: '레이어 스타일이 업데이트되었습니다.',
@@ -56,8 +65,8 @@ export default function StyleEditor() {
         <div className="flex items-center justify-between">
           <Label htmlFor="color">색상</Label>
           <div className="flex items-center space-x-2">
-            <div 
-              className="w-6 h-6 rounded-full border" 
+            <div
+              className="w-6 h-6 rounded-full border"
               style={{ backgroundColor: style.color }}
             />
             <input
@@ -73,7 +82,7 @@ export default function StyleEditor() {
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="weight">선 두께</Label>
+          <Label htmlFor="weight">선 굵기</Label>
           <span className="text-sm">{style.weight}px</span>
         </div>
         <Slider

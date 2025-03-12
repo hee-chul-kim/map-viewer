@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { useShapefileStore } from '@/lib/store';
+import { useAtom } from 'jotai';
+import { shapefilesAtom } from '@/lib/store';
 
 // Leaflet 컴포넌트는 클라이언트 사이드에서만 렌더링되어야 함
 const MapComponent = dynamic(() => import('@/components/map-component'), {
@@ -15,7 +16,7 @@ const MapComponent = dynamic(() => import('@/components/map-component'), {
 });
 
 export default function MapViewer() {
-  const { shapefiles } = useShapefileStore();
+  const [shapefiles] = useAtom(shapefilesAtom);
   const [isMounted, setIsMounted] = useState(false);
 
   // 클라이언트 사이드에서만 렌더링

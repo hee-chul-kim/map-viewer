@@ -1,16 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { useAtom } from 'jotai';
+import { shapefilesAtom, selectedShapefileAtom } from '@/lib/store';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FileUpload from '@/components/file-upload';
 import LayerList from '@/components/layer-list';
 import StyleEditor from '@/components/style-editor';
 import AttributeTable from '@/components/attribute-table';
-import { useShapefileStore } from '@/lib/store';
 
 export default function Sidebar() {
   const [activeTab, setActiveTab] = useState('upload');
-  const { shapefiles, selectedShapefile } = useShapefileStore();
+  const [shapefiles] = useAtom(shapefilesAtom);
+  const [selectedShapefile] = useAtom(selectedShapefileAtom);
   
   const hasShapefiles = shapefiles.length > 0;
   const hasSelectedShapefile = !!selectedShapefile;

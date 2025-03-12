@@ -1,6 +1,6 @@
 'use client';
 
-import { create } from 'zustand';
+import { atom, useAtom } from 'jotai';
 
 // GeoJSON 타입 정의
 export interface GeoJSONFeature {
@@ -34,55 +34,83 @@ export interface Shapefile {
   style: ShapefileStyle;
 }
 
-// 스토어 상태 타입 정의
-interface ShapefileState {
-  shapefiles: Shapefile[];
-  selectedShapefile: string | null;
-  addShapefile: (shapefile: Shapefile) => void;
-  removeShapefile: (id: string) => void;
-  updateShapefileVisibility: (id: string, visible: boolean) => void;
-  updateShapefileStyle: (id: string, style: Partial<ShapefileStyle>) => void;
-  selectShapefile: (id: string | null) => void;
-}
+// Jotai atoms 정의
+export const shapefilesAtom = atom<Shapefile[]>([]);
+export const selectedShapefileAtom = atom<string | null>(null);
 
-// Zustand 스토어 생성
-export const useShapefileStore = create<ShapefileState>((set) => ({
-  shapefiles: [],
-  selectedShapefile: null,
+// 파생 atoms
+export const getShapefileByIdAtom = atom(
+  (get) => (id: string) => get(shapefilesAtom).find(sf => sf.id === id)
+);
+
+export const visibleShapefilesAtom = atom(
+  (get) => get(shapefilesAtom).filter(sf => sf.visible)
+);
+
+// 액션 atoms
+export const addShapefileAtom = atom(
+  null,
+  (get, set, shapefile: Shapefile) => {
+    set(shapefilesAtom, [...get(shapefilesAtom), shapefile]);
+    set(selectedShapefileAtom, shapefile.id);
+  }
+);
+
+export const removeShapefileAtom = atom(
+  null,
+  (get, set, id: string) => {
+    set(shapefilesAtom, get(shapefilesAtom).filter(sf => sf.id !== id));
+    if (get(selectedShapefileAtom) === id) {
+      set(selectedShapefileAtom, null);
+    }
+  }
+);
+
+export const updateShapefileVisibilityAtom = atom(
+  null,
+  (get, set, params: { id: string, visible: boolean }) => {
+    const { id, visible } = params;
+    set(shapefilesAtom, get(shapefilesAtom).map(sf => 
+      sf.id === id ? { ...sf, visible } : sf
+    ));
+  }
+);
+
+export const updateShapefileStyleAtom = atom(
+  null,
+  (get, set, params: { id: string, style: Partial<ShapefileStyle> }) => {
+    const { id, style } = params;
+    set(shapefilesAtom, get(shapefilesAtom).map(sf => 
+      sf.id === id ? { ...sf, style: { ...sf.style, ...style } } : sf
+    ));
+  }
+);
+
+export const selectShapefileAtom = atom(
+  null,
+  (get, set, id: string | null) => {
+    set(selectedShapefileAtom, id);
+  }
+);
+
+// 유틸리티 훅 (컴포넌트에서 사용하기 쉽게)
+export function useShapefiles() {
+  const [shapefiles, setShapefiles] = useAtom(shapefilesAtom);
+  const [selectedId, setSelectedId] = useAtom(selectedShapefileAtom);
+  const [, addShapefile] = useAtom(addShapefileAtom);
+  const [, removeShapefile] = useAtom(removeShapefileAtom);
+  const [, updateVisibility] = useAtom(updateShapefileVisibilityAtom);
+  const [, updateStyle] = useAtom(updateShapefileStyleAtom);
   
-  // 새 Shapefile 추가
-  addShapefile: (shapefile) => 
-    set((state) => ({
-      shapefiles: [...state.shapefiles, shapefile],
-      selectedShapefile: shapefile.id,
-    })),
-  
-  // Shapefile 제거
-  removeShapefile: (id) => 
-    set((state) => ({
-      shapefiles: state.shapefiles.filter((sf) => sf.id !== id),
-      selectedShapefile: state.selectedShapefile === id ? null : state.selectedShapefile,
-    })),
-  
-  // Shapefile 가시성 업데이트
-  updateShapefileVisibility: (id, visible) => 
-    set((state) => ({
-      shapefiles: state.shapefiles.map((sf) => 
-        sf.id === id ? { ...sf, visible } : sf
-      ),
-    })),
-  
-  // Shapefile 스타일 업데이트
-  updateShapefileStyle: (id, style) => 
-    set((state) => ({
-      shapefiles: state.shapefiles.map((sf) => 
-        sf.id === id ? { ...sf, style: { ...sf.style, ...style } } : sf
-      ),
-    })),
-  
-  // Shapefile 선택
-  selectShapefile: (id) => 
-    set(() => ({
-      selectedShapefile: id,
-    })),
-})); 
+  return {
+    shapefiles,
+    selectedShapefile: selectedId,
+    addShapefile,
+    removeShapefile,
+    updateShapefileVisibility: (id: string, visible: boolean) => 
+      updateVisibility({ id, visible }),
+    updateShapefileStyle: (id: string, style: Partial<ShapefileStyle>) => 
+      updateStyle({ id, style }),
+    selectShapefile: setSelectedId
+  };
+} 

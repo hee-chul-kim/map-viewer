@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useShapefileStore } from '@/lib/store';
+import { useAtom } from 'jotai';
+import { shapefilesAtom, selectedShapefileAtom } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 export default function AttributeTable() {
-  const { shapefiles, selectedShapefile } = useShapefileStore();
+  const [shapefiles] = useAtom(shapefilesAtom);
+  const [selectedShapefile] = useAtom(selectedShapefileAtom);
   const [searchTerm, setSearchTerm] = useState('');
   
   const selectedLayer = useMemo(() => {

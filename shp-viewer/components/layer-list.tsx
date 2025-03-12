@@ -1,18 +1,21 @@
 'use client';
 
-import { useShapefileStore } from '@/lib/store';
+import { useAtom } from 'jotai';
+import { 
+  shapefilesAtom, 
+  selectedShapefileAtom, 
+  updateShapefileVisibilityAtom, 
+  removeShapefileAtom 
+} from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 export default function LayerList() {
-  const { 
-    shapefiles, 
-    selectedShapefile, 
-    selectShapefile, 
-    updateShapefileVisibility, 
-    removeShapefile 
-  } = useShapefileStore();
+  const [shapefiles] = useAtom(shapefilesAtom);
+  const [selectedShapefile, setSelectedShapefile] = useAtom(selectedShapefileAtom);
+  const [, updateShapefileVisibility] = useAtom(updateShapefileVisibilityAtom);
+  const [, removeShapefile] = useAtom(removeShapefileAtom);
 
   if (shapefiles.length === 0) {
     return (
@@ -23,7 +26,7 @@ export default function LayerList() {
   }
 
   const handleToggleVisibility = (id: string, currentVisibility: boolean) => {
-    updateShapefileVisibility(id, !currentVisibility);
+    updateShapefileVisibility({ id, visible: !currentVisibility });
   };
 
   const handleRemoveLayer = (id: string, name: string) => {
@@ -37,12 +40,12 @@ export default function LayerList() {
   return (
     <div className="space-y-2">
       {shapefiles.map((shapefile) => (
-        <div 
+        <div
           key={shapefile.id}
           className={`flex items-center justify-between p-3 rounded-md border ${
             selectedShapefile === shapefile.id ? 'bg-primary/5 border-primary/50' : 'bg-background'
           }`}
-          onClick={() => selectShapefile(shapefile.id)}
+          onClick={() => setSelectedShapefile(shapefile.id)}
         >
           <div className="flex items-center space-x-3">
             <button

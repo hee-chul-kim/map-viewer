@@ -4,12 +4,13 @@ import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { useShapefileStore } from '@/lib/store';
+import { useAtom } from 'jotai';
+import { addShapefileAtom } from '@/lib/store';
 import { Upload, FileX } from 'lucide-react';
 
 export default function FileUpload() {
   const [isLoading, setIsLoading] = useState(false);
-  const { addShapefile } = useShapefileStore();
+  const [, addShapefile] = useAtom(addShapefileAtom);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     setIsLoading(true);
@@ -127,7 +128,7 @@ export default function FileUpload() {
             <FileX className="h-12 w-12 text-muted-foreground mb-3" />
             <p className="text-sm font-medium">SHP 파일을 드래그하거나 클릭하여 업로드하세요</p>
             <p className="text-xs text-muted-foreground mt-1">
-              관련 파일(.dbf, .shx)도 함께 업로드해야 합니다
+              관련 파일(.dbf, .shx)도 함께 업로드해 주세요
             </p>
           </div>
         )}
