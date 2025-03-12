@@ -51,15 +51,17 @@ export async function readShapefileNode(
     // SHP 파일 파싱
     const geojson = await parseShp(shpArrayBuffer);
 
-    // DBF 파일 파싱 (있는 경우)
-    let dbfData = [];
-    if (dbfBuffer) {
-      const dbfArrayBuffer = Buffer.from(dbfBuffer).buffer as ArrayBuffer;
-      dbfData = await parseDbf(dbfArrayBuffer);
-    }
+    // // DBF 파일 파싱 (있는 경우)
+    // let dbfData = [];
+    // if (dbfBuffer) {
+    //   const dbfArrayBuffer = Buffer.from(dbfBuffer).buffer as ArrayBuffer;
+    //   dbfData = await parseDbf(dbfArrayBuffer);
+    // }
+    //
+    // // 데이터 결합
+    // const result = combineShpDbf([geojson, dbfData]);
 
-    // 데이터 결합
-    const result = combineShpDbf([geojson, dbfData]);
+    const result = geojson;
 
     return {
       name: baseName,
