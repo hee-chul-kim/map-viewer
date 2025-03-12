@@ -40,6 +40,15 @@ next-env.d.ts
 *.swp
 *.swo
 
+# WebStorm specific
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+out/
+atlassian-ide-plugin.xml
+
 # OS generated files
 .DS_Store
 .DS_Store?

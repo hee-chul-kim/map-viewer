@@ -4,72 +4,12 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
+import { readShapefileNode } from '../lib/node-shp-reader';
 import { GeoJSONCollection } from '../lib/store';
-
-// Node.js 환경에서 SHP 파일 읽기 함수
-async function readShapefileNode(
-  shpFilePath: string,
-  dbfFilePath?: string,
-  shxFilePath?: string
-): Promise<{
-  name: string;
-  geojson: GeoJSONCollection;
-}> {
-  try {
-    // 파일 경로 유효성 검사
-    if (!shpFilePath || !shpFilePath.endsWith('.shp')) {
-      throw new Error('Invalid SHP file path');
-    }
-
-    // 파일 존재 여부 확인
-    if (!fs.existsSync(shpFilePath)) {
-      throw new Error(`File not found: ${shpFilePath}`);
-    }
-
-    // 기본 이름 추출
-    const baseName = path.basename(shpFilePath, '.shp');
-
-    // shpjs 동적 임포트
-    const shpjs = await import('shpjs');
-
-    // 파일 읽기
-    const shpBuffer = fs.readFileSync(shpFilePath);
-    const dbfBuffer = dbfFilePath && fs.existsSync(dbfFilePath) 
-      ? fs.readFileSync(dbfFilePath) 
-      : undefined;
-    const shxBuffer = shxFilePath && fs.existsSync(shxFilePath)
-      ? fs.readFileSync(shxFilePath)
-      : undefined;
-
-    // ArrayBuffer로 변환
-    const shpArrayBuffer = Buffer.from(shpBuffer).buffer as ArrayBuffer;
-
-    // SHP 파일 파싱
-    const geojson = await shpjs.default.parseShp(shpArrayBuffer);
-
-    // DBF 파일 파싱 (있는 경우)
-    let dbfData = [];
-    if (dbfBuffer) {
-      const dbfArrayBuffer = Buffer.from(dbfBuffer).buffer as ArrayBuffer;
-      dbfData = await shpjs.default.parseDbf(dbfArrayBuffer);
-    }
-
-    // 데이터 결합
-    const result = shpjs.default.combine([geojson, dbfData]);
-
-    return {
-      name: baseName,
-      geojson: result as GeoJSONCollection,
-    };
-  } catch (error) {
-    console.error('Error reading shapefile:', error);
-    throw error;
-  }
-}
 
 async function main() {
   try {
-    console.log('readShapefile 함수 테스트 시작 (Node.js 환경)...\n');
+    console.log('SHP 파일 읽기 테스트 시작 (Node.js 환경)...\n');
 
     // 테스트 파일 경로
     const shpFilePath = './files/point/PFP.shp';
@@ -94,7 +34,10 @@ async function main() {
 
     // readShapefileNode 함수 호출
     console.log('\nreadShapefileNode 함수 호출 중...');
-    const result = await readShapefileNode(shpFilePath, dbfFilePath, shxFilePath);
+    const result : {
+      name: string;
+      geojson: GeoJSONCollection;
+    } = await readShapefileNode(shpFilePath, dbfFilePath, shxFilePath);
 
     // 결과 출력
     console.log('\n결과:');
@@ -130,7 +73,7 @@ async function main() {
     fs.writeFileSync(sampleFilePath, JSON.stringify(sampleData, null, 2));
     console.log(`\n샘플 데이터 저장 완료: ${sampleFilePath}`);
 
-    console.log('\nreadShapefile 함수 테스트 완료!');
+    console.log('\nSHP 파일 읽기 테스트 완료!');
   } catch (error) {
     console.error('오류 발생:', error);
     process.exit(1);
