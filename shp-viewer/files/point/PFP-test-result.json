@@ -11,7 +11,15 @@
         ]
       },
       "properties": {
-        "id": 0
+        "id": 0,
+        "SISUL_NM": "계단",
+        "CODE": "0820",
+        "TFLAG": "",
+        "SUBCODE": "02",
+        "ORIG_FID": 0,
+        "ID": 0,
+        "PRMNNT_ID": "0",
+        "E_DATE": "20250227"
       }
     },
     {
@@ -24,7 +32,15 @@
         ]
       },
       "properties": {
-        "id": 1
+        "id": 1,
+        "SISUL_NM": "계단",
+        "CODE": "0820",
+        "TFLAG": "",
+        "SUBCODE": "02",
+        "ORIG_FID": 1,
+        "ID": 1,
+        "PRMNNT_ID": "1",
+        "E_DATE": "20250227"
       }
     },
     {
@@ -37,7 +53,15 @@
         ]
       },
       "properties": {
-        "id": 2
+        "id": 2,
+        "SISUL_NM": "계단",
+        "CODE": "0820",
+        "TFLAG": "",
+        "SUBCODE": "02",
+        "ORIG_FID": 2,
+        "ID": 2,
+        "PRMNNT_ID": "2",
+        "E_DATE": "20250227"
       }
     },
     {
@@ -50,7 +74,15 @@
         ]
       },
       "properties": {
-        "id": 3
+        "id": 3,
+        "SISUL_NM": "계단",
+        "CODE": "0820",
+        "TFLAG": "",
+        "SUBCODE": "02",
+        "ORIG_FID": 3,
+        "ID": 3,
+        "PRMNNT_ID": "3",
+        "E_DATE": "20250227"
       }
     },
     {
@@ -63,7 +95,15 @@
         ]
       },
       "properties": {
-        "id": 4
+        "id": 4,
+        "SISUL_NM": "계단",
+        "CODE": "0820",
+        "TFLAG": "",
+        "SUBCODE": "02",
+        "ORIG_FID": 4,
+        "ID": 4,
+        "PRMNNT_ID": "4",
+        "E_DATE": "20250227"
       }
     }
   ]
