@@ -5,8 +5,9 @@ import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { useAtom } from 'jotai';
-import { addShapefileAtom } from '@/lib/store';
+import { addShapefileAtom, GeoJSONCollection } from '@/lib/store';
 import { Upload, FileX } from 'lucide-react';
+import { parseShp, parseDbf, combineShpDbf, GeoJSON } from '@/lib/shp-parser';
 
 export default function FileUpload() {
   const [isLoading, setIsLoading] = useState(false);
@@ -33,16 +34,12 @@ export default function FileUpload() {
       const dbfFile = acceptedFiles.find(file => file.name === `${baseName}.dbf`);
       const shxFile = acceptedFiles.find(file => file.name === `${baseName}.shx`);
       
-      if (!dbfFile || !shxFile) {
+      if (!dbfFile) {
         toast({
           title: '경고',
-          description: '필수 관련 파일(.dbf, .shx)이 누락되었습니다. 파일이 제대로 로드되지 않을 수 있습니다.',
-          variant: 'destructive',
+          description: 'DBF 파일이 누락되었습니다. 속성 정보가 없을 수 있습니다.',
         });
       }
-      
-      // 파일 처리를 위해 shpjs 동적 임포트
-      const shp = await import('shpjs');
       
       // 파일 읽기
       const filePromises = [shpFile, dbfFile, shxFile].filter(Boolean).map(file => {
@@ -56,18 +53,46 @@ export default function FileUpload() {
       
       const fileBuffers = await Promise.all(filePromises);
       
-      // shpjs를 사용하여 파일 파싱
-      const geojson = await shp.default.parseShp(fileBuffers[0], fileBuffers[2]);
-      const dbf = dbfFile ? await shp.default.parseDbf(fileBuffers[1]) : [];
+      // 커스텀 파서를 사용하여 파일 파싱
+      const shpBuffer = fileBuffers[0];
+      const dbfBuffer = fileBuffers[1];
+      const shxBuffer = fileBuffers[2];
       
-      // GeoJSON 생성
-      const features = shp.default.combine([geojson, dbf]);
+      // SHP 파일 파싱
+      const geojson = await parseShp(shpBuffer, shxBuffer);
+      
+      // DBF 파일 파싱 (있는 경우)
+      let dbfData: any[] = [];
+      if (dbfBuffer) {
+        try {
+          dbfData = await parseDbf(dbfBuffer);
+        } catch (dbfError) {
+          console.error('DBF 파일 파싱 오류:', dbfError);
+          toast({
+            title: '경고',
+            description: 'DBF 파일 처리 중 오류가 발생했습니다. 속성 정보가 없을 수 있습니다.',
+          });
+        }
+      }
+      
+      // GeoJSON과 DBF 데이터 결합
+      const features = combineShpDbf([geojson, dbfData]);
+      
+      // GeoJSON 타입을 GeoJSONCollection 타입으로 변환
+      const geoJsonCollection: GeoJSONCollection = {
+        type: features.type,
+        features: features.features.map(feature => ({
+          type: feature.type,
+          geometry: feature.geometry,
+          properties: feature.properties || {}
+        }))
+      };
       
       // 스토어에 추가
       addShapefile({
         id: Date.now().toString(),
         name: baseName,
-        geojson: features,
+        geojson: geoJsonCollection,
         visible: true,
         style: {
           color: '#3B82F6',
@@ -85,7 +110,7 @@ export default function FileUpload() {
       console.error('SHP 파일 처리 오류:', error);
       toast({
         title: '오류',
-        description: '파일 처리 중 오류가 발생했습니다.',
+        description: '파일 처리 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : String(error)),
         variant: 'destructive',
       });
     } finally {
