@@ -17,7 +17,11 @@ const CanvasMapComponent = dynamic(() => import('@/components/canvas-map-compone
 });
 
 // 기본 파일 목록
-const DEFAULT_FILES = ['files/point/PFP.shp', 'files/line/TLLK.shp', 'files/polygon/WLA.shp'];
+const DEFAULT_FILES = [
+  'files/point/PFP.shp',
+  'files/line/TLLK.shp',
+  //'files/polygon/WLA.shp'
+];
 
 export default function MapViewer() {
   const [shapefiles, setShapefiles] = useAtom(shapefilesAtom);

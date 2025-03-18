@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { GeoJSONFeature, Shapefile, Bounds } from '@/types/geometry';
+import { GeoJSONFeature, Shapefile } from '@/types/geometry';
 import { calculateBounds, renderFeature, transformCoordinates } from '@/lib/geometry';
 
 interface CanvasMapComponentProps {
@@ -54,7 +54,6 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
     x: number,
     y: number,
     feature: GeoJSONFeature,
-    bounds: Bounds,
     ctx: CanvasRenderingContext2D
   ): boolean => {
     const { geometry } = feature;
@@ -236,10 +235,18 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const visibleShapefiles = shapefiles.filter((sf) => sf.visible);
-    const bounds = calculateBounds(visibleShapefiles);
+    const visibleShapefiles = shapefiles.filter((shapefile) => shapefile.visible);
+    // const bounds = calculateBounds(visibleShapefiles);
+    //
+    // if (!bounds.hasFeatures) {
+    //   setHoveredFeature(null);
+    //   return;
+    // }
 
-    if (!bounds.hasFeatures) {
+    const hasFeatures = visibleShapefiles.some(
+      (shapefile) => shapefile.geojson?.features?.length > 0
+    );
+    if (!hasFeatures) {
       setHoveredFeature(null);
       return;
     }
@@ -249,7 +256,7 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
 
     for (const shapefile of visibleShapefiles) {
       for (const feature of shapefile.geojson.features) {
-        if (isPointInFeature(mouseX, mouseY, feature, bounds, ctx)) {
+        if (isPointInFeature(mouseX, mouseY, feature, ctx)) {
           setHoveredFeature({
             shapefile,
             feature,
@@ -279,13 +286,31 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
   };
 
   const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
+    //e.preventDefault();
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // 마우스 위치 계산
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
 
     // 확대/축소 처리
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     const newScale = Math.max(0.1, Math.min(10, scale + delta));
 
+    // 마우스 위치를 기준으로 새로운 오프셋 계산
+    const scaleChange = newScale - scale;
+    const newOffset = {
+      x: offset.x - ((mouseX - offset.x) * scaleChange) / scale,
+      y: offset.y + ((mouseY - offset.y) * scaleChange) / scale,
+    };
+
+    console.log(newOffset);
+
     setScale(newScale);
+    setOffset(newOffset);
   };
 
   // 초기화 버튼 핸들러

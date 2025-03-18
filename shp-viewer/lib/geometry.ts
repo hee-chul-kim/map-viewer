@@ -123,6 +123,8 @@ const renderFeature = (
   offset: { x: number; y: number },
   isHovered = false
 ) => {
+  console.log('render');
+
   const { geometry } = feature;
 
   // 호버 상태에 따른 스타일 조정
