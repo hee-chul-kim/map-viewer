@@ -91,17 +91,20 @@ const transformCoordinates = (
   // const rangeY = maxY - minY;
 
   // 대한민국 위경도 범위로 설정
-  const maxX = 132;
-  const maxY = 38.37;
+  //const maxX = 132;
+  //const maxY = 38.37;
   const minX = 124;
   const minY = 33.06;
-  const rangeX = maxX - minX;
-  const rangeY = maxY - minY;
+  //const rangeX = maxX - minX;
+  //const rangeY = maxY - minY;
 
   // 가로세로 비율 유지를 위한 스케일 계산
-  const scaleX = (canvasSize.width - padding * 2) / rangeX;
-  const scaleY = (canvasSize.height - padding * 2) / rangeY;
-  const baseScale = Math.min(scaleX, scaleY);
+  // const scaleX = (canvasSize.width - padding * 2) / rangeX;
+  // const scaleY = (canvasSize.height - padding * 2) / rangeY;
+  // const baseScale = Math.min(scaleX, scaleY);
+
+  // 기본 스케일
+  const baseScale = 144;
 
   // 현재 스케일과 오프셋 적용
   const canvasX = padding + (x - minX) * baseScale * scale + offset.x;
@@ -115,7 +118,7 @@ const renderFeature = (
   ctx: CanvasRenderingContext2D,
   feature: GeoJSONFeature,
   style: Shapefile['style'],
-  dimensions: { width: number; height: number },
+  canvasSize: { width: number; height: number },
   scale: number,
   offset: { x: number; y: number },
   isHovered = false
@@ -133,7 +136,7 @@ const renderFeature = (
 
   if (geometry.type === 'Point') {
     const [x, y] = geometry.coordinates as [number, number];
-    const { x: canvasX, y: canvasY } = transformCoordinates(dimensions, scale, offset, x, y);
+    const { x: canvasX, y: canvasY } = transformCoordinates(canvasSize, scale, offset, x, y);
 
     ctx.beginPath();
     ctx.arc(canvasX, canvasY, 5 * scale, 0, Math.PI * 2);
@@ -143,7 +146,7 @@ const renderFeature = (
     ctx.beginPath();
 
     (geometry.coordinates as [number, number][]).forEach(([x, y], i) => {
-      const { x: canvasX, y: canvasY } = transformCoordinates(dimensions, scale, offset, x, y);
+      const { x: canvasX, y: canvasY } = transformCoordinates(canvasSize, scale, offset, x, y);
 
       if (i === 0) {
         ctx.moveTo(canvasX, canvasY);
@@ -158,7 +161,7 @@ const renderFeature = (
 
     // 외부 링
     (geometry.coordinates as [number, number][][])[0].forEach(([x, y], i) => {
-      const { x: canvasX, y: canvasY } = transformCoordinates(dimensions, scale, offset, x, y);
+      const { x: canvasX, y: canvasY } = transformCoordinates(canvasSize, scale, offset, x, y);
 
       if (i === 0) {
         ctx.moveTo(canvasX, canvasY);
@@ -174,7 +177,7 @@ const renderFeature = (
       const ring = (geometry.coordinates as [number, number][][])[j];
 
       ring.forEach(([x, y], i) => {
-        const { x: canvasX, y: canvasY } = transformCoordinates(dimensions, scale, offset, x, y);
+        const { x: canvasX, y: canvasY } = transformCoordinates(canvasSize, scale, offset, x, y);
 
         if (i === 0) {
           ctx.moveTo(canvasX, canvasY);
@@ -190,7 +193,7 @@ const renderFeature = (
     ctx.stroke();
   } else if (geometry.type === 'MultiPoint') {
     (geometry.coordinates as [number, number][]).forEach(([x, y]) => {
-      const { x: canvasX, y: canvasY } = transformCoordinates(dimensions, scale, offset, x, y);
+      const { x: canvasX, y: canvasY } = transformCoordinates(canvasSize, scale, offset, x, y);
 
       ctx.beginPath();
       ctx.arc(canvasX, canvasY, 5 * scale, 0, Math.PI * 2);
@@ -202,7 +205,7 @@ const renderFeature = (
       ctx.beginPath();
 
       line.forEach(([x, y], i) => {
-        const { x: canvasX, y: canvasY } = transformCoordinates(dimensions, scale, offset, x, y);
+        const { x: canvasX, y: canvasY } = transformCoordinates(canvasSize, scale, offset, x, y);
 
         if (i === 0) {
           ctx.moveTo(canvasX, canvasY);
@@ -219,7 +222,7 @@ const renderFeature = (
 
       // 외부 링
       polygon[0].forEach(([x, y], i) => {
-        const { x: canvasX, y: canvasY } = transformCoordinates(dimensions, scale, offset, x, y);
+        const { x: canvasX, y: canvasY } = transformCoordinates(canvasSize, scale, offset, x, y);
 
         if (i === 0) {
           ctx.moveTo(canvasX, canvasY);
@@ -235,7 +238,7 @@ const renderFeature = (
         const ring = polygon[j];
 
         ring.forEach(([x, y], i) => {
-          const { x: canvasX, y: canvasY } = transformCoordinates(dimensions, scale, offset, x, y);
+          const { x: canvasX, y: canvasY } = transformCoordinates(canvasSize, scale, offset, x, y);
 
           if (i === 0) {
             ctx.moveTo(canvasX, canvasY);
