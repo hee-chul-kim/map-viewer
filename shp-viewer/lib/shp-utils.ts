@@ -1,7 +1,7 @@
 /**
  * SHP 파일 처리를 위한 유틸리티 함수
  */
-import type { GeoJSONCollection, GeoJSONFeature } from '@/types/geojson';
+import type { GeoJSONCollection, GeoJSONFeature } from '@/types/geometry';
 
 // shpjs가 반환하는 형식과 일치하는 타입 정의
 interface ShpjsGeoJSON {

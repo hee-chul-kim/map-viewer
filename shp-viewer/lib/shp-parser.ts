@@ -2,7 +2,7 @@
  * SHP 파일 파싱을 위한 유틸리티 함수
  */
 
-import type { GeoJSONCollection } from '@/types/geojson';
+import type { GeoJSONCollection } from '@/types/geometry';
 
 // SHP 파일 형식 상수
 const SHAPE_TYPE = {

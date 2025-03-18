@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useAtom } from 'jotai';
 import { shapefilesAtom } from '@/lib/store';
-import { loadShapefileFromPath } from '@/lib/shapefile';
+import loadShapefile from '@/lib/loadShapefile';
 
 // Canvas 컴포넌트는 클라이언트 사이드에서만 렌더링되어야 함
 const CanvasMapComponent = dynamic(() => import('@/components/canvas-map-component'), {
@@ -36,7 +36,7 @@ export default function MapViewer() {
       try {
         for (const file of DEFAULT_FILES) {
           try {
-            const shapefile = await loadShapefileFromPath(`${file}`);
+            const shapefile = await loadShapefile(`${file}`);
             setShapefiles((prev) => [...prev, shapefile]);
           } catch (error) {
             console.error(`Error loading shapefile ${file}:`, error);
@@ -62,7 +62,7 @@ export default function MapViewer() {
 
   return (
     <div className="w-full h-full border rounded-lg overflow-hidden p-4">
-      <div className="w-full h-full">
+      <div className="w-full h-[calc(100vh-8rem)]">
         <CanvasMapComponent shapefiles={shapefiles} />
       </div>
     </div>

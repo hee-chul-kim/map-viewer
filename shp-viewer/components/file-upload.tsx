@@ -8,7 +8,7 @@ import { useAtom } from 'jotai';
 import { addShapefileAtom } from '@/lib/store';
 import { Upload, FileX } from 'lucide-react';
 import { parseShp, parseDbf, combineShpDbf } from '@/lib/shp-parser';
-import type { GeoJSONCollection, GeoJSONFeature } from '@/types/geojson';
+import type { GeoJSONCollection, GeoJSONFeature } from '@/types/geometry';
 
 export default function FileUpload() {
   const [isLoading, setIsLoading] = useState(false);

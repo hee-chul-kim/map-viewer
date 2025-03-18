@@ -16,10 +16,30 @@ export interface GeoJSONCollection {
   features: GeoJSONFeature[];
 }
 
-interface Bounds {
+export interface ShapefileStyle {
+  color: string;
+  weight: number;
+  opacity: number;
+  fillOpacity: number;
+}
+
+export interface Shapefile {
+  id: string;
+  name: string;
+  geojson: GeoJSONCollection;
+  visible: boolean;
+  style: ShapefileStyle;
+}
+
+export interface Bounds {
   minX: number;
   minY: number;
   maxX: number;
   maxY: number;
   hasFeatures: boolean;
+}
+
+export interface Coordinates {
+  x: number;
+  y: number;
 }

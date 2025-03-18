@@ -1,6 +1,6 @@
 /**
  * 간단한 readShapefile 테스트 스크립트 (Node.js 환경용)
- * 사용법: npx ts-node scripts/test-read-shapefile.ts
+ * 사용법: npx ts-node scripts/test-read-loadShapefileFromPath.ts
  */
 import * as fs from 'fs';
 import * as path from 'path';
@@ -34,7 +34,7 @@ async function main() {
 
     // readShapefileNode 함수 호출
     console.log('\nreadShapefileNode 함수 호출 중...');
-    const result : {
+    const result: {
       name: string;
       geojson: GeoJSONCollection;
     } = await readShapefileNode(shpFilePath, dbfFilePath, shxFilePath);
@@ -51,13 +51,15 @@ async function main() {
       console.log('\n첫 번째 피처:');
       console.log(`- 타입: ${firstFeature.geometry.type}`);
       console.log(`- 좌표: ${JSON.stringify(firstFeature.geometry.coordinates).slice(0, 100)}...`);
-      
+
       // 속성 정보 출력
       console.log('- 속성:');
-      Object.entries(firstFeature.properties).slice(0, 5).forEach(([key, value]) => {
-        console.log(`  - ${key}: ${value}`);
-      });
-      
+      Object.entries(firstFeature.properties)
+        .slice(0, 5)
+        .forEach(([key, value]) => {
+          console.log(`  - ${key}: ${value}`);
+        });
+
       if (Object.keys(firstFeature.properties).length > 5) {
         console.log(`  - ... 외 ${Object.keys(firstFeature.properties).length - 5}개 속성`);
       }
@@ -68,7 +70,7 @@ async function main() {
       type: result.geojson.type,
       features: result.geojson.features.slice(0, 5),
     };
-    
+
     const sampleFilePath = './files/point/PFP-test-result.json';
     fs.writeFileSync(sampleFilePath, JSON.stringify(sampleData, null, 2));
     console.log(`\n샘플 데이터 저장 완료: ${sampleFilePath}`);
@@ -81,4 +83,4 @@ async function main() {
 }
 
 // 스크립트 실행
-main(); 
+main();

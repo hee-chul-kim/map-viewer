@@ -5,7 +5,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { parseShp, parseDbf, combineShpDbf } from './shp-parser';
-import { GeoJSONCollection } from '@/types/geojson';
+import { GeoJSONCollection } from '@/types/geometry';
 
 /**
  * Node.js 환경에서 파일 시스템의 SHP 파일을 읽습니다.

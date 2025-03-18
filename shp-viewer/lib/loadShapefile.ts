@@ -1,9 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Shapefile } from '@/types/shapefile';
-import { GeoJSONCollection } from '@/types/geojson';
+import { GeoJSONCollection, Shapefile } from '@/types/geometry';
 import { parseShp, parseDbf, combineShpDbf } from './shp-parser';
 
-export default async function loadShapefileFromPath(filePath: string): Promise<Shapefile> {
+export default async function loadShapefile(filePath: string): Promise<Shapefile> {
   try {
     // 파일 이름에서 확장자 제거
     const name = filePath.split('/').pop()?.replace('.shp', '') || 'Unknown';
