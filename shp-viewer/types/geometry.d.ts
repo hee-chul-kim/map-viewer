@@ -14,4 +14,12 @@ export interface GeoJSONFeature {
 export interface GeoJSONCollection {
   type: string;
   features: GeoJSONFeature[];
-} 
+}
+
+interface Bounds {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+  hasFeatures: boolean;
+}
