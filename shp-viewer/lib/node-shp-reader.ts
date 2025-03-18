@@ -4,8 +4,8 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import type { GeoJSONCollection } from './store';
 import { parseShp, parseDbf, combineShpDbf } from './shp-parser';
+import { GeoJSONCollection } from '@/types/geojson';
 
 /**
  * Node.js 환경에서 파일 시스템의 SHP 파일을 읽습니다.
@@ -38,16 +38,14 @@ export async function readShapefileNode(
 
     // 파일 읽기
     const shpBuffer = fs.readFileSync(shpFilePath);
-    const dbfBuffer = dbfFilePath && fs.existsSync(dbfFilePath) 
-      ? fs.readFileSync(dbfFilePath) 
-      : undefined;
-    const shxBuffer = shxFilePath && fs.existsSync(shxFilePath)
-      ? fs.readFileSync(shxFilePath)
-      : undefined;
+    const dbfBuffer =
+      dbfFilePath && fs.existsSync(dbfFilePath) ? fs.readFileSync(dbfFilePath) : undefined;
+    const shxBuffer =
+      shxFilePath && fs.existsSync(shxFilePath) ? fs.readFileSync(shxFilePath) : undefined;
 
     // ArrayBuffer로 변환
     const shpArrayBuffer = Buffer.from(shpBuffer).buffer as ArrayBuffer;
-    
+
     // SHP 파일 파싱
     const geojson = await parseShp(shpArrayBuffer);
 
@@ -79,7 +77,7 @@ export async function readShapefileNode(
 export function validateShapefileSetNode(filePaths: string[]) {
   // SHP 파일 찾기
   const shpFilePath = filePaths.find((filePath: string) => filePath.endsWith('.shp'));
-  
+
   if (!shpFilePath) {
     return {
       isValid: false,
@@ -90,16 +88,20 @@ export function validateShapefileSetNode(filePaths: string[]) {
   // 기본 이름 추출
   const baseName = path.basename(shpFilePath, '.shp');
   const baseDir = path.dirname(shpFilePath);
-  
+
   // 관련 파일 찾기
-  const dbfFilePath = filePaths.find((filePath: string) => path.basename(filePath) === `${baseName}.dbf`);
-  const shxFilePath = filePaths.find((filePath: string) => path.basename(filePath) === `${baseName}.shx`);
-  
+  const dbfFilePath = filePaths.find(
+    (filePath: string) => path.basename(filePath) === `${baseName}.dbf`
+  );
+  const shxFilePath = filePaths.find(
+    (filePath: string) => path.basename(filePath) === `${baseName}.shx`
+  );
+
   // 누락된 파일 확인
   const missingFiles = [];
   if (!dbfFilePath) missingFiles.push('.dbf');
   if (!shxFilePath) missingFiles.push('.shx');
-  
+
   return {
     isValid: missingFiles.length === 0,
     shpFilePath,
@@ -112,5 +114,5 @@ export function validateShapefileSetNode(filePaths: string[]) {
 
 module.exports = {
   readShapefileNode,
-  validateShapefileSetNode
-}; 
+  validateShapefileSetNode,
+};

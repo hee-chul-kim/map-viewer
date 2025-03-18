@@ -1,38 +1,7 @@
 'use client';
 
 import { atom, useAtom } from 'jotai';
-
-// GeoJSON 타입 정의
-export interface GeoJSONFeature {
-  type: string;
-  geometry: {
-    type: string;
-    coordinates: any;
-  };
-  properties: Record<string, any>;
-}
-
-export interface GeoJSONCollection {
-  type: string;
-  features: GeoJSONFeature[];
-}
-
-// 스타일 타입 정의
-export interface ShapefileStyle {
-  color: string;
-  weight: number;
-  opacity: number;
-  fillOpacity: number;
-}
-
-// Shapefile 타입 정의
-export interface Shapefile {
-  id: string;
-  name: string;
-  geojson: GeoJSONCollection;
-  visible: boolean;
-  style: ShapefileStyle;
-}
+import type { Shapefile, ShapefileStyle } from '@/types/shapefile';
 
 // Jotai atoms 정의
 export const shapefilesAtom = atom<Shapefile[]>([]);

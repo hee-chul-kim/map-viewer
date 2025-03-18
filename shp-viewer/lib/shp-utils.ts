@@ -1,7 +1,7 @@
 /**
  * SHP 파일 처리를 위한 유틸리티 함수
  */
-import type { GeoJSONCollection, GeoJSONFeature } from './store';
+import type { GeoJSONCollection, GeoJSONFeature } from '@/types/geojson';
 
 // shpjs가 반환하는 형식과 일치하는 타입 정의
 interface ShpjsGeoJSON {
@@ -57,7 +57,7 @@ export async function readShapefile(
 
     // SHP 파일 파싱 (선택적 SHX 포함)
     const geojson = await shp.default.parseShp(fileBuffers[0], fileBuffers[2]);
-    
+
     // DBF 파일이 있는 경우 파싱
     const dbf = dbfFile ? await shp.default.parseDbf(fileBuffers[1]) : [];
 
@@ -67,11 +67,11 @@ export async function readShapefile(
     // GeoJSONCollection 타입으로 변환
     const result: GeoJSONCollection = {
       type: features.type,
-      features: features.features.map(feature => ({
+      features: features.features.map((feature) => ({
         type: feature.type,
         geometry: feature.geometry,
-        properties: feature.properties || {}
-      })) as GeoJSONFeature[]
+        properties: feature.properties || {},
+      })) as GeoJSONFeature[],
     };
 
     return {
@@ -99,7 +99,7 @@ export function validateShapefileSet(files: File[]): {
 } {
   // SHP 파일 찾기
   const shpFile = files.find((file) => file.name.endsWith('.shp'));
-  
+
   if (!shpFile) {
     return {
       isValid: false,
@@ -109,16 +109,16 @@ export function validateShapefileSet(files: File[]): {
 
   // 기본 이름 추출
   const baseName = shpFile.name.slice(0, -4);
-  
+
   // 관련 파일 찾기
   const dbfFile = files.find((file) => file.name === `${baseName}.dbf`);
   const shxFile = files.find((file) => file.name === `${baseName}.shx`);
-  
+
   // 누락된 파일 확인
   const missingFiles = [];
   if (!dbfFile) missingFiles.push('.dbf');
   if (!shxFile) missingFiles.push('.shx');
-  
+
   return {
     isValid: missingFiles.length === 0,
     shpFile,
@@ -127,4 +127,4 @@ export function validateShapefileSet(files: File[]): {
     missingFiles,
     baseName,
   };
-} 
+}

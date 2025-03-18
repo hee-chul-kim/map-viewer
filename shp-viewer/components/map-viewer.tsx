@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useAtom } from 'jotai';
 import { shapefilesAtom } from '@/lib/store';
+import { loadShapefileFromPath } from '@/lib/shapefile';
 
 // Canvas 컴포넌트는 클라이언트 사이드에서만 렌더링되어야 함
 const CanvasMapComponent = dynamic(() => import('@/components/canvas-map-component'), {
@@ -15,13 +16,40 @@ const CanvasMapComponent = dynamic(() => import('@/components/canvas-map-compone
   ),
 });
 
+// 기본 파일 목록
+const DEFAULT_FILES = [
+  'files/point/PFP.shp',
+  'files/line/TLLK.shp',
+  //'files/polygon/WLA.shp'
+];
+
 export default function MapViewer() {
-  const [shapefiles] = useAtom(shapefilesAtom);
+  const [shapefiles, setShapefiles] = useAtom(shapefilesAtom);
   const [isMounted, setIsMounted] = useState(false);
 
   // 클라이언트 사이드에서만 렌더링
   useEffect(() => {
     setIsMounted(true);
+
+    // 기본 파일 로드
+    const loadDefaultFiles = async () => {
+      try {
+        for (const file of DEFAULT_FILES) {
+          try {
+            const shapefile = await loadShapefileFromPath(`${file}`);
+            setShapefiles((prev) => [...prev, shapefile]);
+          } catch (error) {
+            console.error(`Error loading shapefile ${file}:`, error);
+          }
+        }
+      } catch (error) {
+        console.error('기본 파일 로드 중 오류 발생:', error);
+      }
+    };
+
+    if (shapefiles.length === 0) {
+      loadDefaultFiles();
+    }
   }, []);
 
   if (!isMounted) {
@@ -33,10 +61,10 @@ export default function MapViewer() {
   }
 
   return (
-    <div className="w-full h-full border rounded-lg overflow-hidden">
-      <div className="w-full h-full min-h-[500px]">
+    <div className="w-full h-full border rounded-lg overflow-hidden p-4">
+      <div className="w-full h-full">
         <CanvasMapComponent shapefiles={shapefiles} />
       </div>
     </div>
   );
-} 
+}

@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+* 공통 타입은 types 폴더 아래에 *.d.ts 형식으로 저장
+** index 파일을 통해 export
