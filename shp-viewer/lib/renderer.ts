@@ -14,12 +14,12 @@ type RenderContext = {
  * 포인트 도형을 렌더링합니다.
  */
 const renderPoint = (context: RenderContext, coordinates: [number, number]) => {
-  const { ctx, scale, offset } = context;
+  const { ctx, scale, offset, style } = context;
   const [x, y] = coordinates;
   const { x: canvasX, y: canvasY } = transformCoordinates(scale, offset, x, y);
 
   ctx.beginPath();
-  ctx.arc(canvasX, canvasY, 5 * scale, 0, Math.PI * 2);
+  ctx.arc(canvasX, canvasY, style.weight * 5, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
 };

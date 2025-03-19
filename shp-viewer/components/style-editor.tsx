@@ -18,7 +18,8 @@ export default function StyleEditor() {
   const [selectedShapefile] = useAtom(selectedShapefileAtom);
   const [, updateShapefileStyle] = useAtom(updateShapefileStyleAtom);
   
-  const [style, setStyle] = useState<ShapefileStyle>(DEFAULT_STYLE);
+  const [style, setStyle] = useState<ShapefileStyle>(DEFAULT_STYLE.polygon);
+  const [localStyle, setLocalStyle] = useState(style);
 
   // 선택된 shapefile이 변경될 때 스타일 업데이트
   useEffect(() => {
@@ -27,20 +28,28 @@ export default function StyleEditor() {
     const shapefile = shapefiles.find(sf => sf.id === selectedShapefile);
     if (shapefile) {
       setStyle(shapefile.style);
+      setLocalStyle(shapefile.style);
     }
   }, [selectedShapefile, shapefiles]);
 
-  // 스타일 변경 핸들러
+  // 스타일 변경 핸들러 (실시간 업데이트용)
+  const handleLocalStyleChange = (key: keyof ShapefileStyle, value: string | number) => {
+    setLocalStyle(prev => ({ ...prev, [key]: value }));
+  };
+
+  // 스타일 변경 핸들러 (최종 적용용)
   const handleStyleChange = (key: keyof ShapefileStyle, value: string | number) => {
     if (!selectedShapefile) return;
 
     const newStyle = { ...style, [key]: value };
     setStyle(newStyle);
-    updateShapefileStyle({ id: selectedShapefile, style: { [key]: value } });
+    setLocalStyle(newStyle);
+    updateShapefileStyle({ id: selectedShapefile, style: newStyle });
 
     toast({
       title: '스타일 업데이트',
       description: '레이어 스타일이 업데이트되었습니다.',
+      duration: 3000,
     });
   };
 
@@ -63,12 +72,12 @@ export default function StyleEditor() {
           <div className="flex items-center space-x-2">
             <div
               className="w-6 h-6 rounded-full border"
-              style={{ backgroundColor: style.color }}
+              style={{ backgroundColor: localStyle.color }}
             />
             <input
               id="color"
               type="color"
-              value={style.color}
+              value={localStyle.color || '#000000'}
               onChange={(e) => handleStyleChange('color', e.target.value)}
               className="w-10 h-8"
             />
@@ -79,45 +88,48 @@ export default function StyleEditor() {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="weight">선 굵기</Label>
-          <span className="text-sm">{style.weight}px</span>
+          <span className="text-sm">{localStyle.weight.toFixed(3)}px</span>
         </div>
         <Slider
           id="weight"
-          min={1}
-          max={10}
-          step={1}
-          value={[style.weight]}
-          onValueChange={(value) => handleStyleChange('weight', value[0])}
+          min={0.001}
+          max={1}
+          step={0.001}
+          value={[localStyle.weight]}
+          onValueChange={(value) => handleLocalStyleChange('weight', value[0])}
+          onValueCommit={(value) => handleStyleChange('weight', value[0])}
         />
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="opacity">선 투명도</Label>
-          <span className="text-sm">{Math.round(style.opacity * 100)}%</span>
+          <span className="text-sm">{Math.round(localStyle.opacity * 100)}%</span>
         </div>
         <Slider
           id="opacity"
           min={0}
           max={1}
           step={0.1}
-          value={[style.opacity]}
-          onValueChange={(value) => handleStyleChange('opacity', value[0])}
+          value={[localStyle.opacity]}
+          onValueChange={(value) => handleLocalStyleChange('opacity', value[0])}
+          onValueCommit={(value) => handleStyleChange('opacity', value[0])}
         />
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="fillOpacity">채우기 투명도</Label>
-          <span className="text-sm">{Math.round(style.fillOpacity * 100)}%</span>
+          <span className="text-sm">{Math.round(localStyle.fillOpacity * 100)}%</span>
         </div>
         <Slider
           id="fillOpacity"
           min={0}
           max={1}
           step={0.1}
-          value={[style.fillOpacity]}
-          onValueChange={(value) => handleStyleChange('fillOpacity', value[0])}
+          value={[localStyle.fillOpacity]}
+          onValueChange={(value) => handleLocalStyleChange('fillOpacity', value[0])}
+          onValueCommit={(value) => handleStyleChange('fillOpacity', value[0])}
         />
       </div>
     </div>
