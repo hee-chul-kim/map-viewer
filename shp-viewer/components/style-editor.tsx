@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent, useCallback } from 'react';
 import { useAtom } from 'jotai';
 import { 
   shapefilesAtom, 
@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { toast } from '@/components/ui/use-toast';
 import { DEFAULT_STYLE } from '@/lib/consts';
+import { useThrottle } from '@/hooks/useThrottle';
 
 export default function StyleEditor() {
   const [shapefiles] = useAtom(shapefilesAtom);
@@ -38,7 +39,7 @@ export default function StyleEditor() {
   };
 
   // 스타일 변경 핸들러 (최종 적용용)
-  const handleStyleChange = (key: keyof ShapefileStyle, value: string | number) => {
+  const handleStyleChange = useCallback((key: keyof ShapefileStyle, value: string | number) => {
     if (!selectedShapefile) return;
 
     const newStyle = { ...style, [key]: value };
@@ -51,7 +52,10 @@ export default function StyleEditor() {
       description: '레이어 스타일이 업데이트되었습니다.',
       duration: 3000,
     });
-  };
+  }, [selectedShapefile, style, updateShapefileStyle]);
+
+  // 스로틀된 스타일 변경 핸들러
+  const throttledStyleChange = useThrottle(handleStyleChange, 1000);
 
   if (!selectedShapefile) {
     return (
@@ -65,23 +69,36 @@ export default function StyleEditor() {
   if (!selectedLayer) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 p-4">
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="color">색상</Label>
-          <div className="flex items-center space-x-2">
-            <div
-              className="w-6 h-6 rounded-full border"
-              style={{ backgroundColor: localStyle.color }}
-            />
-            <input
-              id="color"
-              type="color"
-              value={localStyle.color || '#000000'}
-              onChange={(e) => handleStyleChange('color', e.target.value)}
-              className="w-10 h-8"
-            />
-          </div>
+          <Label htmlFor="color">채우기 색상</Label>
+          <input
+            type="color"
+            id="color"
+            value={localStyle.color || '#000000'}
+            className="w-16 h-8"
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              handleLocalStyleChange('color', e.target.value);
+              throttledStyleChange('color', e.target.value);
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="strokeColor">외곽선 색상</Label>
+          <input
+            type="color"
+            id="strokeColor"
+            value={localStyle.strokeColor || localStyle.color || '#000000'}
+            className="w-16 h-8"
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              handleLocalStyleChange('strokeColor', e.target.value);
+              throttledStyleChange('strokeColor', e.target.value);
+            }}
+          />
         </div>
       </div>
 
@@ -103,27 +120,11 @@ export default function StyleEditor() {
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="opacity">선 투명도</Label>
-          <span className="text-sm">{Math.round(localStyle.opacity * 100)}%</span>
+          <Label htmlFor="opacity">투명도</Label>
+          <span className="text-sm">{localStyle.fillOpacity.toFixed(1)}</span>
         </div>
         <Slider
           id="opacity"
-          min={0}
-          max={1}
-          step={0.1}
-          value={[localStyle.opacity]}
-          onValueChange={(value) => handleLocalStyleChange('opacity', value[0])}
-          onValueCommit={(value) => handleStyleChange('opacity', value[0])}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="fillOpacity">채우기 투명도</Label>
-          <span className="text-sm">{Math.round(localStyle.fillOpacity * 100)}%</span>
-        </div>
-        <Slider
-          id="fillOpacity"
           min={0}
           max={1}
           step={0.1}

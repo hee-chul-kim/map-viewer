@@ -16,12 +16,13 @@ export interface GeoJsonCollection {
   features: GeoJsonFeature[];
 }
 
-export interface ShapefileStyle {
+export type ShapefileStyle = {
   color: string;
+  strokeColor?: string;  // 외곽선 색상 (없으면 color 값 사용)
   weight: number;
   opacity: number;
   fillOpacity: number;
-}
+};
 
 export interface Shapefile {
   id: string;

@@ -12,21 +12,22 @@ export const DEFAULT_FILES = [
 export const DEFAULT_STYLE = {
   point: {
     color: '#FF6B6B', // 산호색 (포인트는 눈에 잘 띄어야 함)
-    weight: 1,
+    weight: 0.5,
     opacity: 1,
     fillOpacity: 0.2,
   },
   line: {
-    color: '#4ECDC4', // 민트색 (선은 부드러운 느낌으로)
-    weight: 1,
+    color: '#3B82F6', // 밝은 파랑색 (선은 시원한 느낌으로)
+    weight: 2,
     opacity: 1,
     fillOpacity: 0.2,
   },
   polygon: {
-    color: '#6C5CE7', // 보라색 (영역은 세련된 느낌으로)
+    color: '#E2E8F0', // 매우 밝은 슬레이트 그레이 (채우기)
+    strokeColor: '#475569', // 더 진한 슬레이트 그레이 (외곽선)
     weight: 1,
     opacity: 1,
-    fillOpacity: 0.2,
+    fillOpacity: 0.3,
   },
 } as const;
 
