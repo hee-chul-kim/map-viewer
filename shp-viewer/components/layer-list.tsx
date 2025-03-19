@@ -1,11 +1,11 @@
 'use client';
 
 import { useAtom } from 'jotai';
-import { 
-  shapefilesAtom, 
-  selectedShapefileAtom, 
-  updateShapefileVisibilityAtom, 
-  removeShapefileAtom 
+import {
+  shapefilesAtom,
+  selectedShapefileAtom,
+  updateShapefileVisibilityAtom,
+  removeShapefileAtom,
 } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, Trash2 } from 'lucide-react';
@@ -19,9 +19,7 @@ export default function LayerList() {
 
   if (shapefiles.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        업로드된 레이어가 없습니다.
-      </div>
+      <div className="text-center py-8 text-muted-foreground">업로드된 레이어가 없습니다.</div>
     );
   }
 
@@ -55,11 +53,7 @@ export default function LayerList() {
               }}
               className="text-muted-foreground hover:text-foreground"
             >
-              {shapefile.visible ? (
-                <Eye className="h-4 w-4" />
-              ) : (
-                <EyeOff className="h-4 w-4" />
-              )}
+              {shapefile.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
             </button>
             <div className="truncate max-w-[180px]">
               <div className="font-medium text-sm">{shapefile.name}</div>
@@ -83,4 +77,4 @@ export default function LayerList() {
       ))}
     </div>
   );
-} 
+}

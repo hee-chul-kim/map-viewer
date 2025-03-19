@@ -119,7 +119,7 @@ const renderFeature = (
   const { geometry } = feature;
 
   // 호버 상태에 따른 스타일 조정
-  const strokeColor = isHovered ? '#ff0000' : (style.strokeColor || style.color);
+  const strokeColor = isHovered ? '#ff0000' : style.strokeColor || style.color;
   const lineWidth = isHovered ? style.weight + 1 : style.weight;
   const fillOpacity = isHovered ? Math.min(style.fillOpacity + 0.2, 1) : style.fillOpacity;
 

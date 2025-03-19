@@ -15,21 +15,21 @@ export async function loadShapefile(filePath: string): Promise<Shapefile> {
     // 파일들을 병렬로 로드하고 파싱
     const [shpData, dbfData] = await Promise.all([
       fetch(shpPath)
-        .then(res => {
+        .then((res) => {
           if (!res.ok) throw new Error(`Failed to load SHP file: ${res.statusText}`);
           return res.arrayBuffer();
         })
-        .then(buffer => parseShp(buffer)),
+        .then((buffer) => parseShp(buffer)),
       fetch(dbfPath)
-        .then(res => {
+        .then((res) => {
           if (!res.ok) {
             console.warn(`DBF file not found or failed to load: ${dbfPath}`);
             return null;
           }
           return res.arrayBuffer();
         })
-        .then(buffer => buffer ? parseDbf(buffer) : [])
-        .catch(() => []) // DBF 파일이 없거나 로드 실패 시 빈 배열 반환
+        .then((buffer) => (buffer ? parseDbf(buffer) : []))
+        .catch(() => []), // DBF 파일이 없거나 로드 실패 시 빈 배열 반환
     ]);
 
     // SHP와 DBF 데이터 결합
@@ -71,11 +71,10 @@ export async function loadShapefile(filePath: string): Promise<Shapefile> {
   }
 }
 
-
 /**
  * SHP와 DBF 데이터를 결합합니다.
  */
- function combineShpDbf(data: [GeoJsonCollection, Record<string, any>[]]): GeoJsonCollection {
+function combineShpDbf(data: [GeoJsonCollection, Record<string, any>[]]): GeoJsonCollection {
   const [shpData, dbfData] = data;
 
   if (!dbfData || dbfData.length === 0) {
@@ -102,4 +101,4 @@ export async function loadShapefile(filePath: string): Promise<Shapefile> {
     type: 'FeatureCollection',
     features: combinedFeatures,
   };
-} 
+}

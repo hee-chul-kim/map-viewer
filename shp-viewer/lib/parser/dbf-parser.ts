@@ -16,11 +16,7 @@ export async function parseDbf(dbfBuffer: ArrayBuffer): Promise<Record<string, a
 
     // DBF 파일 헤더 파싱
     const version = view.getUint8(0);
-    const lastUpdate = new Date(
-      1900 + view.getUint8(1),
-      view.getUint8(2) - 1,
-      view.getUint8(3)
-    );
+    const lastUpdate = new Date(1900 + view.getUint8(1), view.getUint8(2) - 1, view.getUint8(3));
     const numRecords = view.getUint32(4, true);
     const headerLength = view.getUint16(8, true);
     const recordLength = view.getUint16(10, true);
@@ -29,7 +25,7 @@ export async function parseDbf(dbfBuffer: ArrayBuffer): Promise<Record<string, a
     const fields = [];
     let offset = 32; // 필드 설명자 시작 위치
 
-    while (view.getUint8(offset) !== 0x0D) {
+    while (view.getUint8(offset) !== 0x0d) {
       const field = {
         name: '',
         type: String.fromCharCode(view.getUint8(offset + 11)),
@@ -53,7 +49,7 @@ export async function parseDbf(dbfBuffer: ArrayBuffer): Promise<Record<string, a
 
     for (let i = 0; i < numRecords; i++) {
       // 삭제된 레코드 표시 확인
-      const isDeleted = view.getUint8(offset) === 0x2A;
+      const isDeleted = view.getUint8(offset) === 0x2a;
       if (isDeleted) {
         offset += recordLength;
         continue;

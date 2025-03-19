@@ -2,11 +2,7 @@
 
 import { useState, useEffect, ChangeEvent, useCallback } from 'react';
 import { useAtom } from 'jotai';
-import { 
-  shapefilesAtom, 
-  selectedShapefileAtom, 
-  updateShapefileStyleAtom,
-} from '@/lib/store';
+import { shapefilesAtom, selectedShapefileAtom, updateShapefileStyleAtom } from '@/lib/store';
 import { ShapefileStyle } from '@/types/geometry';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -18,7 +14,7 @@ export default function StyleEditor() {
   const [shapefiles] = useAtom(shapefilesAtom);
   const [selectedShapefile] = useAtom(selectedShapefileAtom);
   const [, updateShapefileStyle] = useAtom(updateShapefileStyleAtom);
-  
+
   const [style, setStyle] = useState<ShapefileStyle>(DEFAULT_STYLE.polygon);
   const [localStyle, setLocalStyle] = useState(style);
 
@@ -26,7 +22,7 @@ export default function StyleEditor() {
   useEffect(() => {
     if (!selectedShapefile) return;
 
-    const shapefile = shapefiles.find(sf => sf.id === selectedShapefile);
+    const shapefile = shapefiles.find((sf) => sf.id === selectedShapefile);
     if (shapefile) {
       setStyle(shapefile.style);
       setLocalStyle(shapefile.style);
@@ -35,37 +31,36 @@ export default function StyleEditor() {
 
   // 스타일 변경 핸들러 (실시간 업데이트용)
   const handleLocalStyleChange = (key: keyof ShapefileStyle, value: string | number) => {
-    setLocalStyle(prev => ({ ...prev, [key]: value }));
+    setLocalStyle((prev) => ({ ...prev, [key]: value }));
   };
 
   // 스타일 변경 핸들러 (최종 적용용)
-  const handleStyleChange = useCallback((key: keyof ShapefileStyle, value: string | number) => {
-    if (!selectedShapefile) return;
+  const handleStyleChange = useCallback(
+    (key: keyof ShapefileStyle, value: string | number) => {
+      if (!selectedShapefile) return;
 
-    const newStyle = { ...style, [key]: value };
-    setStyle(newStyle);
-    setLocalStyle(newStyle);
-    updateShapefileStyle({ id: selectedShapefile, style: newStyle });
+      const newStyle = { ...style, [key]: value };
+      setStyle(newStyle);
+      setLocalStyle(newStyle);
+      updateShapefileStyle({ id: selectedShapefile, style: newStyle });
 
-    toast({
-      title: '스타일 업데이트',
-      description: '레이어 스타일이 업데이트되었습니다.',
-      duration: 3000,
-    });
-  }, [selectedShapefile, style, updateShapefileStyle]);
+      toast({
+        title: '스타일 업데이트',
+        description: '레이어 스타일이 업데이트되었습니다.',
+        duration: 3000,
+      });
+    },
+    [selectedShapefile, style, updateShapefileStyle]
+  );
 
   // 스로틀된 스타일 변경 핸들러
   const throttledStyleChange = useThrottle(handleStyleChange, 1000);
 
   if (!selectedShapefile) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        레이어를 선택해주세요.
-      </div>
-    );
+    return <div className="text-center py-8 text-muted-foreground">레이어를 선택해주세요.</div>;
   }
 
-  const selectedLayer = shapefiles.find(sf => sf.id === selectedShapefile);
+  const selectedLayer = shapefiles.find((sf) => sf.id === selectedShapefile);
   if (!selectedLayer) return null;
 
   return (
@@ -135,4 +130,4 @@ export default function StyleEditor() {
       </div>
     </div>
   );
-} 
+}

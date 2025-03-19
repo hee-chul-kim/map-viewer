@@ -18,7 +18,7 @@ export interface GeoJsonCollection {
 
 export type ShapefileStyle = {
   color: string;
-  strokeColor?: string;  // 외곽선 색상 (없으면 color 값 사용)
+  strokeColor?: string; // 외곽선 색상 (없으면 color 값 사용)
   weight: number;
   opacity: number;
   fillOpacity: number;

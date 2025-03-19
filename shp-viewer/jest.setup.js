@@ -26,4 +26,4 @@ global.fetch = jest.fn(() =>
     blob: () => Promise.resolve(new Blob()),
     arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
   })
-); 
+);

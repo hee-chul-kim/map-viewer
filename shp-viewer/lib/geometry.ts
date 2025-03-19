@@ -85,14 +85,12 @@ const transformCoordinates = (
   x: number,
   y: number
 ) => {
-
   // 기본 스케일
   const baseScale = 144;
 
   // 현재 스케일과 오프셋 적용
-  const canvasX = offset.x + (x * baseScale * scale) ;
-  const canvasY = offset.y - (y * baseScale * scale);
-
+  const canvasX = offset.x + x * baseScale * scale;
+  const canvasY = offset.y - y * baseScale * scale;
 
   return { x: canvasX, y: canvasY };
 };

@@ -1,9 +1,6 @@
 import { useCallback, useRef } from 'react';
 
-export function useThrottle<T extends (...args: any[]) => void>(
-  callback: T,
-  delay: number
-): T {
+export function useThrottle<T extends (...args: any[]) => void>(callback: T, delay: number): T {
   const lastRun = useRef(Date.now());
 
   return useCallback(
@@ -17,4 +14,4 @@ export function useThrottle<T extends (...args: any[]) => void>(
     },
     [callback, delay]
   ) as T;
-} 
+}

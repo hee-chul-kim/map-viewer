@@ -214,7 +214,6 @@ function parsePolyline(view: DataView, offset: number) {
   }
 }
 
-
 /**
  * Polygon 도형을 파싱합니다.
  */

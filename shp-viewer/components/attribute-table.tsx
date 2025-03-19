@@ -10,33 +10,33 @@ export default function AttributeTable() {
   const [selectedShapefile] = useAtom(selectedShapefileAtom);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
-  
+
   const selectedLayer = useMemo(() => {
     if (!selectedShapefile) return null;
-    return shapefiles.find(sf => sf.id === selectedShapefile);
+    return shapefiles.find((sf) => sf.id === selectedShapefile);
   }, [shapefiles, selectedShapefile]);
-  
+
   // 속성 데이터 추출
   const { properties, features } = useMemo(() => {
     if (!selectedLayer) return { properties: [], features: [] };
-    
+
     const features = selectedLayer.geojson.features;
     if (features.length === 0) return { properties: [], features: [] };
-    
+
     // 모든 속성 키 추출
     const allKeys = new Set<string>();
-    features.forEach(feature => {
+    features.forEach((feature) => {
       if (feature.properties) {
-        Object.keys(feature.properties).forEach(key => allKeys.add(key));
+        Object.keys(feature.properties).forEach((key) => allKeys.add(key));
       }
     });
-    
+
     return {
       properties: Array.from(allKeys),
       features: features,
     };
   }, [selectedLayer]);
-  
+
   // 페이지네이션 관련 계산
   const totalPages = Math.ceil(features.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -47,15 +47,11 @@ export default function AttributeTable() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
-  
+
   if (!selectedLayer) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        레이어를 선택해주세요.
-      </div>
-    );
+    return <div className="text-center py-8 text-muted-foreground">레이어를 선택해주세요.</div>;
   }
-  
+
   if (features.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -63,7 +59,7 @@ export default function AttributeTable() {
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-4">
       <div className="border rounded-md overflow-hidden">
@@ -80,14 +76,11 @@ export default function AttributeTable() {
             </thead>
             <tbody>
               {currentFeatures.map((feature, index) => (
-                <tr 
-                  key={index} 
-                  className={index % 2 === 0 ? 'bg-background' : 'bg-muted/30'}
-                >
+                <tr key={index} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/30'}>
                   {properties.map((prop) => (
                     <td key={`${index}-${prop}`} className="px-4 py-2 border-t">
-                      {feature.properties?.[prop] !== undefined 
-                        ? String(feature.properties[prop]) 
+                      {feature.properties?.[prop] !== undefined
+                        ? String(feature.properties[prop])
                         : ''}
                     </td>
                   ))}
@@ -96,7 +89,7 @@ export default function AttributeTable() {
             </tbody>
           </table>
         </div>
-        
+
         {/* 페이지네이션 UI */}
         <div className="px-4 py-2 bg-muted/20 border-t flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
@@ -143,4 +136,4 @@ export default function AttributeTable() {
       </div>
     </div>
   );
-} 
+}

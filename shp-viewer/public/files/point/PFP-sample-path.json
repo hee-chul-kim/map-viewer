@@ -5,10 +5,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          127.05302788380777,
-          37.55609811091385
-        ]
+        "coordinates": [127.05302788380777, 37.55609811091385]
       },
       "properties": {
         "SISUL_NM": "���",
@@ -25,10 +22,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          126.94317180465409,
-          37.541594511287585
-        ]
+        "coordinates": [126.94317180465409, 37.541594511287585]
       },
       "properties": {
         "SISUL_NM": "���",
@@ -45,10 +39,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          129.03578701728182,
-          35.09611872137975
-        ]
+        "coordinates": [129.03578701728182, 35.09611872137975]
       },
       "properties": {
         "SISUL_NM": "���",
@@ -65,10 +56,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          127.34312286603335,
-          36.333619733581884
-        ]
+        "coordinates": [127.34312286603335, 36.333619733581884]
       },
       "properties": {
         "SISUL_NM": "���",
@@ -85,10 +73,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          128.6578752950196,
-          37.37514829769725
-        ]
+        "coordinates": [128.6578752950196, 37.37514829769725]
       },
       "properties": {
         "SISUL_NM": "���",

@@ -61,14 +61,14 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
 
   useLayoutEffect(() => {
     setInitOffset({
-      x: - (minX * baseScale * scale),
-      y: canvasSize.height + minY * baseScale * scale
+      x: -(minX * baseScale * scale),
+      y: canvasSize.height + minY * baseScale * scale,
     });
-  }, [canvasSize, scale])
+  }, [canvasSize, scale]);
 
   useLayoutEffect(() => {
     setOffset(initOffset);
-  }, [initOffset])
+  }, [initOffset]);
 
   // 피처 충돌 감지 함수 (마우스 호버링용)
   const isPointInFeature = (
@@ -81,12 +81,7 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
 
     if (geometry.type === 'Point') {
       const [geoX, geoY] = geometry.coordinates as [number, number];
-      const { x: canvasX, y: canvasY } = transformCoordinates(
-        scale,
-        offset,
-        geoX,
-        geoY
-      );
+      const { x: canvasX, y: canvasY } = transformCoordinates(scale, offset, geoX, geoY);
 
       const distance = Math.sqrt(Math.pow(x - canvasX, 2) + Math.pow(y - canvasY, 2));
       return distance <= 5 * scale;
@@ -97,12 +92,7 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
       if (geometry.type === 'Polygon') {
         // 외부 링
         (geometry.coordinates as [number, number][][])[0].forEach(([geoX, geoY], i) => {
-          const { x: canvasX, y: canvasY } = transformCoordinates(
-            scale,
-            offset,
-            geoX,
-            geoY
-          );
+          const { x: canvasX, y: canvasY } = transformCoordinates(scale, offset, geoX, geoY);
 
           if (i === 0) {
             ctx.moveTo(canvasX, canvasY);
@@ -115,12 +105,7 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
           (polygon: [number, number][][]) => {
             // 외부 링
             polygon[0].forEach(([geoX, geoY], i) => {
-              const { x: canvasX, y: canvasY } = transformCoordinates(
-                scale,
-                offset,
-                geoX,
-                geoY
-              );
+              const { x: canvasX, y: canvasY } = transformCoordinates(scale, offset, geoX, geoY);
 
               if (i === 0) {
                 ctx.moveTo(canvasX, canvasY);

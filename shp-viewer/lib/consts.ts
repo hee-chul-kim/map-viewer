@@ -5,7 +5,6 @@ export const DEFAULT_FILES = [
   'files/polygon/WLA.shp',
   'files/line/TLLK.shp',
   'files/point/PFP.shp',
-
 ] as const;
 
 // 기본 스타일 설정
@@ -43,7 +42,7 @@ export const MAP_CONSTANTS = {
   // 서울 좌표
   SEOUL_COORDINATES: {
     LAT: 37.5665,
-    LNG: 126.9780,
+    LNG: 126.978,
   },
   // 기본 지도 설정
   DEFAULT_ZOOM: 7,
@@ -67,22 +66,22 @@ export const CANVAS_CONSTANTS = {
     FONT: '12px Arial',
     CORNER_RADIUS: 5,
   },
-} as const; 
+} as const;
 
 // SHP 파일 형식 상수
 export const SHAPE_TYPE = {
-    NULL: 0,
-    POINT: 1,
-    POLYLINE: 3,
-    POLYGON: 5,
-    MULTIPOINT: 8,
-    POINTZ: 11,
-    POLYLINEZ: 13,
-    POLYGONZ: 15,
-    MULTIPOINTZ: 18,
-    POINTM: 21,
-    POLYLINEM: 23,
-    POLYGONM: 25,
-    MULTIPOINTM: 28,
-    MULTIPATCH: 31,
-  };
+  NULL: 0,
+  POINT: 1,
+  POLYLINE: 3,
+  POLYGON: 5,
+  MULTIPOINT: 8,
+  POINTZ: 11,
+  POLYLINEZ: 13,
+  POLYGONZ: 15,
+  MULTIPOINTZ: 18,
+  POINTM: 21,
+  POLYLINEM: 23,
+  POLYGONM: 25,
+  MULTIPOINTM: 28,
+  MULTIPATCH: 31,
+};
