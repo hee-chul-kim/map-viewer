@@ -8,7 +8,7 @@ import { MAP_CONSTANTS } from '@/lib/consts';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 
-interface CanvasMapComponentProps {
+interface CanvasMapProps {
   shapefiles: Shapefile[];
 }
 
@@ -26,7 +26,7 @@ const minY = MAP_CONSTANTS.BOUNDS.MIN_Y;
 // 기본 스케일
 const baseScale = 144;
 
-export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentProps) {
+export default function CanvasMap({ shapefiles }: CanvasMapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [scale, setScale] = useState(1);

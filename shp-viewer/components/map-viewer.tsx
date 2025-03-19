@@ -8,7 +8,7 @@ import { loadShapefile } from '@/lib/shape-loader';
 import { DEFAULT_FILES } from '@/lib/consts';
 
 // Canvas 컴포넌트는 클라이언트 사이드에서만 렌더링되어야 함
-const CanvasMapComponent = dynamic(() => import('@/components/canvas-map-component'), {
+const CanvasMapComponent = dynamic(() => import('@/components/canvas-map'), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full min-h-[500px] bg-secondary/30 animate-pulse flex items-center justify-center">
