@@ -12,6 +12,7 @@ import type { GeoJsonCollection } from '@/types/geometry';
 export async function parseDbf(dbfBuffer: ArrayBuffer): Promise<Record<string, any>[]> {
   try {
     const view = new DataView(dbfBuffer);
+    const decoder = new TextDecoder('euc-kr'); // 한글 인코딩을 위한 디코더 (브라우저 호환성을 위해 euc-kr 사용)
 
     // DBF 파일 헤더 파싱
     const version = view.getUint8(0);
@@ -37,20 +38,18 @@ export async function parseDbf(dbfBuffer: ArrayBuffer): Promise<Record<string, a
       };
 
       // 필드 이름 파싱 (최대 11바이트, null 종료)
-      for (let i = 0; i < 11; i++) {
-        const char = view.getUint8(offset + i);
-        if (char === 0) break;
-        field.name += String.fromCharCode(char);
-      }
+      const fieldNameBytes = new Uint8Array(dbfBuffer, offset, 11);
+      const nullTerminatorIndex = fieldNameBytes.indexOf(0);
+      const fieldNameLength = nullTerminatorIndex === -1 ? 11 : nullTerminatorIndex;
+      field.name = decoder.decode(fieldNameBytes.slice(0, fieldNameLength)).trim();
 
-      field.name = field.name.trim();
       fields.push(field);
       offset += 32;
     }
 
     // 레코드 파싱
     const records: Record<string, any>[] = [];
-    offset = headerLength; // 데이터 영역 시작
+    offset = headerLength;
 
     for (let i = 0; i < numRecords; i++) {
       // 삭제된 레코드 표시 확인
@@ -64,14 +63,9 @@ export async function parseDbf(dbfBuffer: ArrayBuffer): Promise<Record<string, a
       let fieldOffset = offset + 1; // 삭제 표시 다음부터 시작
 
       for (const field of fields) {
-        let value: any = '';
-
-        // 필드 값 추출
-        for (let j = 0; j < field.length; j++) {
-          value += String.fromCharCode(view.getUint8(fieldOffset + j));
-        }
-
-        value = value.trim();
+        // 필드 값을 바이트 배열로 추출
+        const valueBytes = new Uint8Array(dbfBuffer, fieldOffset, field.length);
+        let value = decoder.decode(valueBytes).trim();
 
         // 필드 타입에 따른 값 변환
         switch (field.type) {

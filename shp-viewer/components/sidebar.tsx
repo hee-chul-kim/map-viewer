@@ -17,7 +17,7 @@ export default function Sidebar() {
   const hasSelectedShapefile = !!selectedShapefile;
 
   return (
-    <div className="w-80 border-r bg-background p-4 overflow-auto h-full">
+    <div className="w-[400px] border-r bg-background p-4 overflow-auto h-full">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="layers" disabled={!hasShapefiles}>레이어</TabsTrigger>
