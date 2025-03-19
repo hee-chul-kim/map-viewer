@@ -5,6 +5,8 @@ import { GeoJsonFeature, Shapefile } from '@/types/geometry';
 import { transformCoordinates } from '@/lib/geometry';
 import { renderFeature } from '@/lib/renderer';
 import { MAP_CONSTANTS } from '@/lib/consts';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 interface CanvasMapComponentProps {
   shapefiles: Shapefile[];
@@ -33,6 +35,7 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(null);
+  const [showPopup, setShowPopup] = useState(true); // 팝업 표시 여부 상태 추가
 
   // 캔버스 크기 설정
   useLayoutEffect(() => {
@@ -242,7 +245,7 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
     const hasFeatures = visibleShapefiles.some(
       (shapefile) => shapefile.geojson?.features?.length > 0
     );
-    if (!hasFeatures) {
+    if (!hasFeatures || !showPopup) {
       setHoveredFeature(null);
       return;
     }
@@ -315,11 +318,24 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
       />
 
       {/* 컨트롤 패널 */}
-      <div className="absolute top-4 right-4 bg-white p-2 rounded shadow">
+      <div className="absolute top-4 right-4 bg-white p-2 rounded shadow space-y-2">
         <button className="px-2 py-1 bg-blue-500 text-white rounded" onClick={handleReset}>
           초기화
         </button>
-        <div className="mt-2 text-sm">확대/축소: {Math.round(scale * 100)}%</div>
+        <div className="text-sm">확대/축소: {Math.round(scale * 100)}%</div>
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="showPopup"
+            checked={showPopup}
+            onCheckedChange={(checked) => {
+              setShowPopup(checked === true);
+              if (!checked) {
+                setHoveredFeature(null);
+              }
+            }}
+          />
+          <Label htmlFor="showPopup" className="text-sm">팝업 표시</Label>
+        </div>
       </div>
     </div>
   );
