@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { GeoJsonFeature, Shapefile } from '@/types/geometry';
 import { transformCoordinates } from '@/lib/geometry';
 import { renderFeature } from '@/lib/renderer';
+import { MAP_CONSTANTS } from '@/lib/consts';
 
 interface CanvasMapComponentProps {
   shapefiles: Shapefile[];
@@ -16,17 +17,25 @@ interface HoveredFeature {
   mouseY: number;
 }
 
+// 대한민국 위경도 범위로 설정
+const minX = MAP_CONSTANTS.BOUNDS.MIN_X;
+const minY = MAP_CONSTANTS.BOUNDS.MIN_Y;
+
+// 기본 스케일
+const baseScale = 144;
+
 export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [scale, setScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [offset, setOffset] = useState({ x: 0, y: 0 }); // 드래그로 변경된 View Offset
+  const [initOffset, setInitOffset] = useState({ ...offset }); // View Offset 초기값
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(null);
 
   // 캔버스 크기 설정
-  useEffect(() => {
+  useLayoutEffect(() => {
     const updateDimensions = () => {
       const container = canvasRef.current?.parentElement;
       if (container) {
@@ -50,6 +59,17 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
     };
   }, []);
 
+  useLayoutEffect(() => {
+    setInitOffset({
+      x: - (minX * baseScale * scale),
+      y: canvasSize.height + minY * baseScale * scale
+    });
+  }, [canvasSize, scale])
+
+  useLayoutEffect(() => {
+    setOffset(initOffset);
+  }, [initOffset])
+
   // 피처 충돌 감지 함수 (마우스 호버링용)
   const isPointInFeature = (
     x: number,
@@ -62,7 +82,6 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
     if (geometry.type === 'Point') {
       const [geoX, geoY] = geometry.coordinates as [number, number];
       const { x: canvasX, y: canvasY } = transformCoordinates(
-        canvasSize,
         scale,
         offset,
         geoX,
@@ -79,7 +98,6 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
         // 외부 링
         (geometry.coordinates as [number, number][][])[0].forEach(([geoX, geoY], i) => {
           const { x: canvasX, y: canvasY } = transformCoordinates(
-            canvasSize,
             scale,
             offset,
             geoX,
@@ -98,7 +116,6 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
             // 외부 링
             polygon[0].forEach(([geoX, geoY], i) => {
               const { x: canvasX, y: canvasY } = transformCoordinates(
-                canvasSize,
                 scale,
                 offset,
                 geoX,
@@ -158,7 +175,7 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
           hoveredFeature.shapefile.id === shapefile.id &&
           hoveredFeature.feature === feature;
 
-        renderFeature(ctx, feature, shapefile.style, canvasSize, scale, offset, Boolean(isHovered));
+        renderFeature(ctx, feature, shapefile.style, scale, offset, Boolean(isHovered));
       });
     });
 
@@ -241,13 +258,6 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
     if (!ctx) return;
 
     const visibleShapefiles = shapefiles.filter((shapefile) => shapefile.visible);
-    // const bounds = calculateBounds(visibleShapefiles);
-    //
-    // if (!bounds.hasFeatures) {
-    //   setHoveredFeature(null);
-    //   return;
-    // }
-
     const hasFeatures = visibleShapefiles.some(
       (shapefile) => shapefile.geojson?.features?.length > 0
     );
@@ -296,32 +306,17 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // 마우스 위치 계산
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
     // 확대/축소 처리
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     const newScale = Math.max(0.1, Math.min(10, scale + delta));
 
-    // 마우스 위치를 기준으로 새로운 오프셋 계산
-    const scaleChange = newScale - scale;
-    const newOffset = {
-      x: offset.x - ((mouseX - offset.x) * scaleChange) / scale,
-      y: offset.y + ((mouseY - offset.y) * scaleChange) / scale,
-    };
-
-    console.log(newOffset);
-
     setScale(newScale);
-    setOffset(newOffset);
   };
 
   // 초기화 버튼 핸들러
   const handleReset = () => {
     setScale(1);
-    setOffset({ x: 0, y: 0 });
+    setInitOffset((prev) => Object.assign({}, prev));
   };
 
   return (

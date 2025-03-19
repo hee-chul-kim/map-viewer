@@ -1,9 +1,9 @@
 import { GeoJsonFeature, Shapefile } from '@/types/geometry';
 import { transformCoordinates } from './geometry';
+import { MAP_CONSTANTS } from './consts';
 
 type RenderContext = {
   ctx: CanvasRenderingContext2D;
-  canvasSize: { width: number; height: number };
   scale: number;
   offset: { x: number; y: number };
   style: Shapefile['style'];
@@ -14,9 +14,9 @@ type RenderContext = {
  * 포인트 도형을 렌더링합니다.
  */
 const renderPoint = (context: RenderContext, coordinates: [number, number]) => {
-  const { ctx, canvasSize, scale, offset } = context;
+  const { ctx, scale, offset } = context;
   const [x, y] = coordinates;
-  const { x: canvasX, y: canvasY } = transformCoordinates(canvasSize, scale, offset, x, y);
+  const { x: canvasX, y: canvasY } = transformCoordinates(scale, offset, x, y);
 
   ctx.beginPath();
   ctx.arc(canvasX, canvasY, 5 * scale, 0, Math.PI * 2);
@@ -28,11 +28,11 @@ const renderPoint = (context: RenderContext, coordinates: [number, number]) => {
  * 라인스트링 도형을 렌더링합니다.
  */
 const renderLineString = (context: RenderContext, coordinates: [number, number][]) => {
-  const { ctx, canvasSize, scale, offset } = context;
+  const { ctx, scale, offset } = context;
   ctx.beginPath();
 
   coordinates.forEach(([x, y], i) => {
-    const { x: canvasX, y: canvasY } = transformCoordinates(canvasSize, scale, offset, x, y);
+    const { x: canvasX, y: canvasY } = transformCoordinates(scale, offset, x, y);
 
     if (i === 0) {
       ctx.moveTo(canvasX, canvasY);
@@ -48,10 +48,10 @@ const renderLineString = (context: RenderContext, coordinates: [number, number][
  * 폴리곤의 링(외부 또는 내부)을 렌더링합니다.
  */
 const renderPolygonRing = (context: RenderContext, ring: [number, number][]) => {
-  const { ctx, canvasSize, scale, offset } = context;
+  const { ctx, scale, offset } = context;
 
   ring.forEach(([x, y], i) => {
-    const { x: canvasX, y: canvasY } = transformCoordinates(canvasSize, scale, offset, x, y);
+    const { x: canvasX, y: canvasY } = transformCoordinates(scale, offset, x, y);
 
     if (i === 0) {
       ctx.moveTo(canvasX, canvasY);
@@ -110,7 +110,6 @@ const renderFeature = (
   ctx: CanvasRenderingContext2D,
   feature: GeoJsonFeature,
   style: Shapefile['style'],
-  canvasSize: { width: number; height: number },
   scale: number,
   offset: { x: number; y: number },
   isHovered = false
@@ -128,7 +127,6 @@ const renderFeature = (
 
   const context: RenderContext = {
     ctx,
-    canvasSize,
     scale,
     offset,
     style,

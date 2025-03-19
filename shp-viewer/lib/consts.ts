@@ -4,7 +4,7 @@ import { ShapefileStyle } from '@/types/geometry';
 export const DEFAULT_FILES = [
   'files/point/PFP.shp',
   'files/line/TLLK.shp',
-  //'files/polygon/WLA.shp'
+  'files/polygon/WLA.shp'
 ] as const;
 
 // 기본 스타일 설정

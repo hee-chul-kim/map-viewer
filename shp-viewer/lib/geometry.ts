@@ -80,37 +80,19 @@ const calculateBounds = (visibleShapefiles: Shapefile[]): Bounds => {
 
 // 좌표 변환 함수
 const transformCoordinates = (
-  canvasSize: { width: number; height: number },
   scale: number,
   offset: { x: number; y: number },
   x: number,
-  y: number,
-  padding = 20
+  y: number
 ) => {
-  //const { minX, minY, maxX, maxY } = bounds;
-  // const rangeX = maxX - minX;
-  // const rangeY = maxY - minY;
-
-  // 대한민국 위경도 범위로 설정
-  //const maxY = 38.37;
-  const minX = MAP_CONSTANTS.BOUNDS.MIN_X;
-  const minY = MAP_CONSTANTS.BOUNDS.MIN_Y;
-  // const maxX = MAP_CONSTANTS.BOUNDS.MAX_X;
-  // const maxY = MAP_CONSTANTS.BOUNDS.MAX_Y;
-  // const rangeX = maxX - minX;
-  // const rangeY = maxY - minY;
-
-  // 가로세로 비율 유지를 위한 스케일 계산
-  // const scaleX = (canvasSize.width - padding * 2) / rangeX;
-  // const scaleY = (canvasSize.height - padding * 2) / rangeY;
-  // const baseScale = Math.min(scaleX, scaleY);
 
   // 기본 스케일
   const baseScale = 144;
 
   // 현재 스케일과 오프셋 적용
-  const canvasX = padding + (x - minX) * baseScale * scale + offset.x;
-  const canvasY = canvasSize.height - padding - (y - minY) * baseScale * scale + offset.y;
+  const canvasX = offset.x + (x * baseScale * scale) ;
+  const canvasY = offset.y - (y * baseScale * scale);
+
 
   return { x: canvasX, y: canvasY };
 };

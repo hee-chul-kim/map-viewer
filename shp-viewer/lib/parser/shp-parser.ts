@@ -3,7 +3,7 @@
  */
 
 import type { GeoJsonCollection } from '@/types/geometry';
-export { parseDbf, combineShpDbf } from './dbf-parser';
+export { parseDbf } from './dbf-parser';
 import { SHAPE_TYPE } from '../consts';
 
 /**
@@ -107,6 +107,8 @@ export async function parseShp(shpBuffer: ArrayBuffer): Promise<GeoJsonCollectio
       // 다음 레코드로 이동
       offset += 8 + contentLength;
     }
+
+    console.log(`feature 개수 : ${features.length}개`);
 
     return {
       type: 'FeatureCollection',
