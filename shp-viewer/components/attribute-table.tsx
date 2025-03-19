@@ -2,25 +2,19 @@
 
 import { useState, useMemo } from 'react';
 import { useAtom } from 'jotai';
-import { shapefilesAtom, selectedShapefileAtom } from '@/lib/store';
+import { selectedShapefileAtom } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 
 export default function AttributeTable() {
-  const [shapefiles] = useAtom(shapefilesAtom);
   const [selectedShapefile] = useAtom(selectedShapefileAtom);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
-  const selectedLayer = useMemo(() => {
-    if (!selectedShapefile) return null;
-    return shapefiles.find((sf) => sf.id === selectedShapefile);
-  }, [shapefiles, selectedShapefile]);
-
   // 속성 데이터 추출
   const { properties, features } = useMemo(() => {
-    if (!selectedLayer) return { properties: [], features: [] };
+    if (!selectedShapefile) return { properties: [], features: [] };
 
-    const features = selectedLayer.geojson.features;
+    const features = selectedShapefile.geojson.features;
     if (features.length === 0) return { properties: [], features: [] };
 
     // 모든 속성 키 추출
@@ -35,7 +29,7 @@ export default function AttributeTable() {
       properties: Array.from(allKeys),
       features: features,
     };
-  }, [selectedLayer]);
+  }, [selectedShapefile]);
 
   // 페이지네이션 관련 계산
   const totalPages = Math.ceil(features.length / itemsPerPage);
@@ -48,7 +42,7 @@ export default function AttributeTable() {
     setCurrentPage(page);
   };
 
-  if (!selectedLayer) {
+  if (!selectedShapefile) {
     return <div className="text-center py-8 text-muted-foreground">레이어를 선택해주세요.</div>;
   }
 
