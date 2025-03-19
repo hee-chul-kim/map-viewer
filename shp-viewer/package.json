@@ -37,7 +37,6 @@
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
     "react-leaflet": "^4.2.1",
-    "shpjs": "^4.0.4",
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",
