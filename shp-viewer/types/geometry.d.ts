@@ -2,7 +2,7 @@
  * GeoJSON 관련 타입 정의
  */
 
-export interface GeoJSONFeature {
+export interface GeoJsonFeature {
   type: string;
   geometry: {
     type: string;
@@ -11,9 +11,9 @@ export interface GeoJSONFeature {
   properties: Record<string, any>;
 }
 
-export interface GeoJSONCollection {
+export interface GeoJsonCollection {
   type: string;
-  features: GeoJSONFeature[];
+  features: GeoJsonFeature[];
 }
 
 export interface ShapefileStyle {
@@ -26,7 +26,7 @@ export interface ShapefileStyle {
 export interface Shapefile {
   id: string;
   name: string;
-  geojson: GeoJSONCollection;
+  geojson: GeoJsonCollection;
   visible: boolean;
   style: ShapefileStyle;
 }

@@ -1,4 +1,4 @@
-import { Bounds, GeoJSONFeature, Shapefile } from '@/types/geometry';
+import { Bounds, GeoJsonFeature, Shapefile } from '@/types/geometry';
 
 // 경계 계산 함수
 const calculateBounds = (visibleShapefiles: Shapefile[]): Bounds => {
@@ -116,7 +116,7 @@ const transformCoordinates = (
 // 피처 렌더링 함수
 const renderFeature = (
   ctx: CanvasRenderingContext2D,
-  feature: GeoJSONFeature,
+  feature: GeoJsonFeature,
   style: Shapefile['style'],
   canvasSize: { width: number; height: number },
   scale: number,

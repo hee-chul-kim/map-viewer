@@ -8,7 +8,7 @@ import { useAtom } from 'jotai';
 import { addShapefileAtom } from '@/lib/store';
 import { Upload, FileX } from 'lucide-react';
 import { parseShp, parseDbf, combineShpDbf } from '@/lib/shp-parser';
-import type { GeoJSONCollection, GeoJSONFeature } from '@/types/geometry';
+import type { GeoJsonCollection, GeoJsonFeature } from '@/types/geometry';
 
 export default function FileUpload() {
   const [isLoading, setIsLoading] = useState(false);
@@ -79,7 +79,7 @@ export default function FileUpload() {
         const features = combineShpDbf([geojson, dbfData]);
 
         // GeoJSON 타입을 GeoJSONCollection 타입으로 변환
-        const geoJsonCollection: GeoJSONCollection = {
+        const geoJsonCollection: GeoJsonCollection = {
           type: features.type,
           features: features.features.map(
             (feature) =>
@@ -87,7 +87,7 @@ export default function FileUpload() {
                 type: feature.type,
                 geometry: feature.geometry,
                 properties: feature.properties || {},
-              }) as GeoJSONFeature
+              }) as GeoJsonFeature
           ),
         };
 

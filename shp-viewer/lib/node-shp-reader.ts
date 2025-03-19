@@ -5,7 +5,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { parseShp, parseDbf, combineShpDbf } from './shp-parser';
-import { GeoJSONCollection } from '@/types/geometry';
+import { GeoJsonCollection } from '@/types/geometry';
 
 /**
  * Node.js 환경에서 파일 시스템의 SHP 파일을 읽습니다.
@@ -20,7 +20,7 @@ export async function readShapefileNode(
   shxFilePath?: string
 ): Promise<{
   name: string;
-  geojson: GeoJSONCollection;
+  geojson: GeoJsonCollection;
 }> {
   try {
     // 파일 경로 유효성 검사
@@ -61,7 +61,7 @@ export async function readShapefileNode(
 
     return {
       name: baseName,
-      geojson: result as GeoJSONCollection,
+      geojson: result as GeoJsonCollection,
     };
   } catch (error) {
     console.error('Node 환경에서 SHP 파일 읽기 오류:', error);

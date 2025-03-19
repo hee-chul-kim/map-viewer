@@ -2,7 +2,7 @@
  * SHP 파일 파싱을 위한 유틸리티 함수
  */
 
-import type { GeoJSONCollection } from '@/types/geometry';
+import type { GeoJsonCollection } from '@/types/geometry';
 
 // SHP 파일 형식 상수
 const SHAPE_TYPE = {
@@ -28,7 +28,7 @@ const SHAPE_TYPE = {
  * @param shxBuffer - 선택적 SHX 파일 버퍼
  * @returns GeoJSON 형식으로 변환된 데이터
  */
-export async function parseShp(shpBuffer: ArrayBuffer): Promise<GeoJSONCollection> {
+export async function parseShp(shpBuffer: ArrayBuffer): Promise<GeoJsonCollection> {
   try {
     // SHP 파일 헤더 파싱
     const view = new DataView(shpBuffer);
@@ -227,6 +227,7 @@ function parsePolyline(view: DataView, offset: number) {
     };
   }
 }
+
 
 /**
  * Polygon 도형을 파싱합니다.
@@ -564,7 +565,7 @@ export async function parseDbf(dbfBuffer: ArrayBuffer): Promise<any[]> {
  * @param data - 결합할 데이터 배열 [GeoJSON, DBF 데이터]
  * @returns 결합된 GeoJSON
  */
-export function combineShpDbf(data: [GeoJSONCollection, any[]]): GeoJSONCollection {
+export function combineShpDbf(data: [GeoJsonCollection, any[]]): GeoJsonCollection {
   try {
     const [geoJson, dbfData] = data;
 

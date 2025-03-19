@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { GeoJSONFeature, Shapefile } from '@/types/geometry';
+import { GeoJsonFeature, Shapefile } from '@/types/geometry';
 import { calculateBounds, renderFeature, transformCoordinates } from '@/lib/geometry';
 
 interface CanvasMapComponentProps {
@@ -10,7 +10,7 @@ interface CanvasMapComponentProps {
 
 interface HoveredFeature {
   shapefile: Shapefile;
-  feature: GeoJSONFeature;
+  feature: GeoJsonFeature;
   mouseX: number;
   mouseY: number;
 }
@@ -53,7 +53,7 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
   const isPointInFeature = (
     x: number,
     y: number,
-    feature: GeoJSONFeature,
+    feature: GeoJsonFeature,
     ctx: CanvasRenderingContext2D
   ): boolean => {
     const { geometry } = feature;

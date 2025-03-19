@@ -1,7 +1,7 @@
 /**
  * SHP 파일 처리를 위한 유틸리티 함수
  */
-import type { GeoJSONCollection, GeoJSONFeature } from '@/types/geometry';
+import type { GeoJsonCollection, GeoJsonFeature } from '@/types/geometry';
 
 // shpjs가 반환하는 형식과 일치하는 타입 정의
 interface ShpjsGeoJSON {
@@ -28,7 +28,7 @@ export async function readShapefile(
   dbfFile?: File,
   shxFile?: File
 ): Promise<{
-  geojson: GeoJSONCollection;
+  geojson: GeoJsonCollection;
   name: string;
 }> {
   try {
@@ -65,13 +65,13 @@ export async function readShapefile(
     const features = shp.default.combine([geojson, dbf]) as ShpjsGeoJSON;
 
     // GeoJSONCollection 타입으로 변환
-    const result: GeoJSONCollection = {
+    const result: GeoJsonCollection = {
       type: features.type,
       features: features.features.map((feature) => ({
         type: feature.type,
         geometry: feature.geometry,
         properties: feature.properties || {},
-      })) as GeoJSONFeature[],
+      })) as GeoJsonFeature[],
     };
 
     return {

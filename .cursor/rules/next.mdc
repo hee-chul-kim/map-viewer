@@ -3,6 +3,7 @@ description:
 globs: 
 alwaysApply: true
 ---
-* 공통 타입은 types 폴더 아래에 *.d.ts 형식으로 저장
-** index 파일을 통해 export
-* export 함수 1개면 항상 export default
+* 공통 타입은 /types/geometry.d.ts 에 추가
+* 공통 오브젝트는 /lib/consts.ts 에 추가
+* export default 지양
+* 부득이한 경우가 아니라면 한 파일의 크기는 500 라인 이하
