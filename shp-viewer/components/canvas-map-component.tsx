@@ -33,7 +33,6 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(null);
-  const [showTooltip, setShowTooltip] = useState(true);
 
   // 캔버스 크기 설정
   useLayoutEffect(() => {
@@ -177,7 +176,7 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
     });
 
     // 호버된 피처가 있으면 툴팁 표시
-    if (hoveredFeature && showTooltip) {
+    if (hoveredFeature) {
       const { feature, mouseX, mouseY } = hoveredFeature;
 
       // 툴팁 배경
@@ -220,7 +219,7 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
         ctx.fillText(line, tooltipX + padding, tooltipY + padding + i * lineHeight);
       });
     }
-  }, [shapefiles, canvasSize, scale, offset, hoveredFeature, showTooltip]);
+  }, [shapefiles, canvasSize, scale, offset, hoveredFeature]);
 
   // 마우스 이벤트 핸들러
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -331,21 +330,11 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
       />
 
       {/* 컨트롤 패널 */}
-      <div className="absolute top-4 right-4 bg-white p-2 rounded shadow space-y-2">
-        <button className="w-full px-2 py-1 bg-blue-500 text-white rounded" onClick={handleReset}>
+      <div className="absolute top-4 right-4 bg-white p-2 rounded shadow">
+        <button className="px-2 py-1 bg-blue-500 text-white rounded" onClick={handleReset}>
           초기화
         </button>
-        <div className="text-sm">확대/축소: {Math.round(scale * 100)}%</div>
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="showTooltip"
-            checked={showTooltip}
-            onChange={(e) => setShowTooltip(e.target.checked)}
-            className="w-4 h-4"
-          />
-          <label htmlFor="showTooltip" className="text-sm">팝업 표시</label>
-        </div>
+        <div className="mt-2 text-sm">확대/축소: {Math.round(scale * 100)}%</div>
       </div>
     </div>
   );
