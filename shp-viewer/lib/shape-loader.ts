@@ -45,13 +45,23 @@ export async function loadShapefile(filePath: string): Promise<Shapefile> {
       })),
     };
 
-    // Shapefile 객체 생성
+    // Shapefile 객체 생성 및 도형 타입에 따른 스타일 적용
+    const getStyleByGeometryType = (geojson: GeoJsonCollection) => {
+      const firstFeature = geojson.features[0];
+      if (!firstFeature) return DEFAULT_STYLE.polygon;
+
+      const geometryType = firstFeature.geometry.type;
+      if (geometryType.includes('Point')) return DEFAULT_STYLE.point;
+      if (geometryType.includes('LineString')) return DEFAULT_STYLE.line;
+      return DEFAULT_STYLE.polygon;
+    };
+
     const shapefile: Shapefile = {
       id: uuidv4(),
       name,
       geojson,
       visible: true,
-      style: DEFAULT_STYLE,
+      style: getStyleByGeometryType(geojson),
     };
 
     return shapefile;

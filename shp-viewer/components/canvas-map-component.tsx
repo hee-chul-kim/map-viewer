@@ -148,10 +148,6 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // 캔버스 크기 설정
-    canvas.width = canvasSize.width;
-    canvas.height = canvasSize.height;
-
     // 캔버스 초기화
     ctx.fillStyle = '#f0f0f0';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -322,6 +318,8 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
   return (
     <div className="relative w-full h-full">
       <canvas
+        width={canvasSize.width}
+        height={canvasSize.height}
         ref={canvasRef}
         className="w-full h-full cursor-grab"
         onMouseDown={handleMouseDown}

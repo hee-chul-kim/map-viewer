@@ -2,18 +2,33 @@ import { ShapefileStyle } from '@/types/geometry';
 
 // 기본 파일 목록
 export const DEFAULT_FILES = [
-  'files/point/PFP.shp',
+  'files/polygon/WLA.shp',
   'files/line/TLLK.shp',
-  'files/polygon/WLA.shp'
+  'files/point/PFP.shp',
+
 ] as const;
 
 // 기본 스타일 설정
-export const DEFAULT_STYLE: ShapefileStyle = {
-  color: '#3B82F6',
-  weight: 1,
-  opacity: 1,
-  fillOpacity: 0.2,
-};
+export const DEFAULT_STYLE = {
+  point: {
+    color: '#FF6B6B', // 산호색 (포인트는 눈에 잘 띄어야 함)
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.2,
+  },
+  line: {
+    color: '#4ECDC4', // 민트색 (선은 부드러운 느낌으로)
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.2,
+  },
+  polygon: {
+    color: '#6C5CE7', // 보라색 (영역은 세련된 느낌으로)
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.2,
+  },
+} as const;
 
 // 지도 관련 상수
 export const MAP_CONSTANTS = {
