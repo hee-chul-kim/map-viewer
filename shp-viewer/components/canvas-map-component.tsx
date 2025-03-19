@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { GeoJsonFeature, Shapefile } from '@/types/geometry';
-import { calculateBounds, renderFeature, transformCoordinates } from '@/lib/geometry';
+import { transformCoordinates } from '@/lib/geometry';
+import { renderFeature } from '@/lib/renderer';
 
 interface CanvasMapComponentProps {
   shapefiles: Shapefile[];
@@ -141,9 +142,13 @@ export default function CanvasMapComponent({ shapefiles }: CanvasMapComponentPro
     // 보이는 shapefile만 필터링
     const visibleShapefiles = shapefiles.filter((sf) => sf.visible);
 
-    // 경계 계산
-    const bounds = calculateBounds(visibleShapefiles);
-    if (!bounds.hasFeatures) return;
+    // 피처가 없는 shapefile은 렌더링하지 않음
+    const hasFeatures = visibleShapefiles.some(
+      (shapefile) => shapefile.geojson?.features?.length > 0
+    );
+    if (!hasFeatures) {
+      return;
+    }
 
     // 모든 shapefile 렌더링
     visibleShapefiles.forEach((shapefile) => {
