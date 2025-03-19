@@ -7,7 +7,7 @@ import { toast } from '@/components/ui/use-toast';
 import { useAtom } from 'jotai';
 import { addShapefileAtom } from '@/lib/store';
 import { Upload, FileX } from 'lucide-react';
-import { parseShp, parseDbf, combineShpDbf } from '@/lib/shp-parser';
+import { parseShp, parseDbf, combineShpDbf } from '@/lib/parser/shp-parser';
 import type { GeoJsonCollection, GeoJsonFeature } from '@/types/geometry';
 
 export default function FileUpload() {

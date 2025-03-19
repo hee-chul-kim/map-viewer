@@ -1,7 +1,7 @@
 'use client';
 
 import { atom, useAtom } from 'jotai';
-import type { Shapefile, ShapefileStyle } from '@/types/shapefile';
+import type { Shapefile, ShapefileStyle } from '@/types/geometry';
 
 // Jotai atoms 정의
 export const shapefilesAtom = atom<Shapefile[]>([]);

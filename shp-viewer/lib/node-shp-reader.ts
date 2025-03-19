@@ -4,7 +4,7 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import { parseShp, parseDbf, combineShpDbf } from './shp-parser';
+import { parseShp, parseDbf, combineShpDbf } from './parser/shp-parser';
 import { GeoJsonCollection } from '@/types/geometry';
 
 /**

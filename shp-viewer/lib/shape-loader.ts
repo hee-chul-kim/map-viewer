@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import { GeoJsonCollection as GeoJsonCollection, Shapefile } from '@/types/geometry';
-import { parseShp, parseDbf, combineShpDbf } from './shp-parser';
+import { parseShp, parseDbf } from './parser';
 import { DEFAULT_STYLE } from './consts';
 
-export default async function loadShapefile(filePath: string): Promise<Shapefile> {
+export async function loadShapefile(filePath: string): Promise<Shapefile> {
   try {
     // 파일 이름에서 확장자 제거
     const name = filePath.split('/').pop()?.replace('.shp', '') || 'Unknown';
@@ -60,3 +60,36 @@ export default async function loadShapefile(filePath: string): Promise<Shapefile
     throw new Error('Failed to load shapefile');
   }
 }
+
+
+/**
+ * SHP와 DBF 데이터를 결합합니다.
+ */
+ function combineShpDbf(data: [GeoJsonCollection, Record<string, any>[]]): GeoJsonCollection {
+  const [shpData, dbfData] = data;
+
+  if (!dbfData || dbfData.length === 0) {
+    console.log('DBF 데이터가 없습니다. SHP 데이터만 반환합니다.');
+    return shpData;
+  }
+
+  const combinedFeatures = shpData.features.map((feature, index) => {
+    if (index >= dbfData.length) {
+      console.warn(`DBF 레코드가 부족합니다. 인덱스: ${index}`);
+      return feature;
+    }
+
+    return {
+      ...feature,
+      properties: {
+        ...feature.properties,
+        ...dbfData[index],
+      },
+    };
+  });
+
+  return {
+    type: 'FeatureCollection',
+    features: combinedFeatures,
+  };
+} 

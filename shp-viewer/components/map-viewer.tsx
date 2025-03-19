@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useAtom } from 'jotai';
 import { shapefilesAtom } from '@/lib/store';
-import loadShapefile from '@/lib/loadShapefile';
+import { loadShapefile } from '@/lib/shape-loader';
 import { DEFAULT_FILES } from '@/lib/consts';
 
 // Canvas 컴포넌트는 클라이언트 사이드에서만 렌더링되어야 함
