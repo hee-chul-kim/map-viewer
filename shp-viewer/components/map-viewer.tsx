@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useAtom } from 'jotai';
 import { shapefilesAtom } from '@/lib/store';
 import loadShapefile from '@/lib/loadShapefile';
+import { DEFAULT_FILES } from '@/lib/consts';
 
 // Canvas 컴포넌트는 클라이언트 사이드에서만 렌더링되어야 함
 const CanvasMapComponent = dynamic(() => import('@/components/canvas-map-component'), {
@@ -15,13 +16,6 @@ const CanvasMapComponent = dynamic(() => import('@/components/canvas-map-compone
     </div>
   ),
 });
-
-// 기본 파일 목록
-const DEFAULT_FILES = [
-  'files/point/PFP.shp',
-  'files/line/TLLK.shp',
-  //'files/polygon/WLA.shp'
-];
 
 export default function MapViewer() {
   const [shapefiles, setShapefiles] = useAtom(shapefilesAtom);

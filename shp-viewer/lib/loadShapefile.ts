@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { GeoJsonCollection as GeoJsonCollection, Shapefile } from '@/types/geometry';
 import { parseShp, parseDbf, combineShpDbf } from './shp-parser';
+import { DEFAULT_STYLE } from './consts';
 
 export default async function loadShapefile(filePath: string): Promise<Shapefile> {
   try {
@@ -50,12 +51,7 @@ export default async function loadShapefile(filePath: string): Promise<Shapefile
       name,
       geojson,
       visible: true,
-      style: {
-        color: '#3B82F6',
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 0.2,
-      },
+      style: DEFAULT_STYLE,
     };
 
     return shapefile;

@@ -6,23 +6,19 @@ import {
   shapefilesAtom, 
   selectedShapefileAtom, 
   updateShapefileStyleAtom,
-  ShapefileStyle 
 } from '@/lib/store';
+import { ShapefileStyle } from '@/types/geometry';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { toast } from '@/components/ui/use-toast';
+import { DEFAULT_STYLE } from '@/lib/consts';
 
 export default function StyleEditor() {
   const [shapefiles] = useAtom(shapefilesAtom);
   const [selectedShapefile] = useAtom(selectedShapefileAtom);
   const [, updateShapefileStyle] = useAtom(updateShapefileStyleAtom);
   
-  const [style, setStyle] = useState<ShapefileStyle>({
-    color: '#3B82F6',
-    weight: 2,
-    opacity: 0.8,
-    fillOpacity: 0.3,
-  });
+  const [style, setStyle] = useState<ShapefileStyle>(DEFAULT_STYLE);
 
   // 선택된 shapefile이 변경될 때 스타일 업데이트
   useEffect(() => {
