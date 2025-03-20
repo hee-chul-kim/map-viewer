@@ -9,7 +9,6 @@ import { SHAPE_TYPE } from '../consts';
 /**
  * SHP 파일을 파싱하여 GeoJSON으로 변환합니다.
  * @param shpBuffer - SHP 파일 버퍼
- * @param shxBuffer - 선택적 SHX 파일 버퍼
  * @returns GeoJSON 형식으로 변환된 데이터
  */
 export async function parseShp(shpBuffer: ArrayBuffer): Promise<GeoJsonCollection> {
@@ -162,14 +161,6 @@ function parsePoint(view: DataView, offset: number) {
  * Polyline 도형을 파싱합니다.
  */
 function parsePolyline(view: DataView, offset: number) {
-  // 바운딩 박스
-  const bbox = {
-    xMin: view.getFloat64(offset, true),
-    yMin: view.getFloat64(offset + 8, true),
-    xMax: view.getFloat64(offset + 16, true),
-    yMax: view.getFloat64(offset + 24, true),
-  };
-
   // 파트 수 (라인 수)
   const numParts = view.getInt32(offset + 32, true);
 
@@ -191,6 +182,7 @@ function parsePolyline(view: DataView, offset: number) {
     points.push([x, y]);
   }
 
+  // TODO - 예제 파일은 파트 항상 1개
   // 파트별로 라인스트링 구성
   const coordinates = [];
   for (let i = 0; i < numParts; i++) {
@@ -218,14 +210,6 @@ function parsePolyline(view: DataView, offset: number) {
  * Polygon 도형을 파싱합니다.
  */
 function parsePolygon(view: DataView, offset: number) {
-  // 바운딩 박스
-  const bbox = {
-    xMin: view.getFloat64(offset, true),
-    yMin: view.getFloat64(offset + 8, true),
-    xMax: view.getFloat64(offset + 16, true),
-    yMax: view.getFloat64(offset + 24, true),
-  };
-
   // 파트 수 (링 수)
   const numParts = view.getInt32(offset + 32, true);
 
@@ -260,6 +244,7 @@ function parsePolygon(view: DataView, offset: number) {
   // 참고: SHP에서는 외부 링은 시계 방향, 내부 링은 반시계 방향으로 정의됨
   const coordinates = [];
 
+  // TODO - 외부/내부 구분 수정. 3개 이상 있음.
   // 간단한 구현: 첫 번째 링을 외부 링으로 간주
   if (rings.length > 0) {
     coordinates.push(rings[0]);
@@ -280,14 +265,6 @@ function parsePolygon(view: DataView, offset: number) {
  * MultiPoint 도형을 파싱합니다.
  */
 function parseMultiPoint(view: DataView, offset: number) {
-  // 바운딩 박스
-  const bbox = {
-    xMin: view.getFloat64(offset, true),
-    yMin: view.getFloat64(offset + 8, true),
-    xMax: view.getFloat64(offset + 16, true),
-    yMax: view.getFloat64(offset + 24, true),
-  };
-
   // 포인트 수
   const numPoints = view.getInt32(offset + 32, true);
 
