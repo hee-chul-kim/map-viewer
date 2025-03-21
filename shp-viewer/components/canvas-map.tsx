@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { GeoJsonFeature, Shapefile } from '@/types/geometry';
+import { Shapefile } from '@/types/geometry';
 import { transformCoordinates } from '@/lib/geometry';
 import { renderFeature } from '@/lib/renderer';
 import { MAP_CONSTANTS } from '@/lib/consts';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import type { Feature } from 'geojson';
 
 interface CanvasMapProps {
   shapefiles: Shapefile[];
@@ -14,7 +15,7 @@ interface CanvasMapProps {
 
 interface HoveredFeature {
   shapefile: Shapefile;
-  feature: GeoJsonFeature;
+  feature: Feature;
   mouseX: number;
   mouseY: number;
 }
@@ -77,7 +78,7 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
   const isPointInFeature = (
     x: number,
     y: number,
-    feature: GeoJsonFeature,
+    feature: Feature,
     ctx: CanvasRenderingContext2D
   ): boolean => {
     const { geometry } = feature;
@@ -153,7 +154,7 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
 
     // 모든 shapefile 렌더링
     visibleShapefiles.forEach((shapefile) => {
-      shapefile.geojson.features.forEach((feature) => {
+      shapefile.geojson.features.forEach((feature: Feature) => {
         const isHovered =
           hoveredFeature &&
           hoveredFeature.shapefile.id === shapefile.id &&
@@ -334,7 +335,9 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
               }
             }}
           />
-          <Label htmlFor="showPopup" className="text-sm">팝업 표시</Label>
+          <Label htmlFor="showPopup" className="text-sm">
+            팝업 표시
+          </Label>
         </div>
       </div>
     </div>

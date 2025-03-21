@@ -1,8 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
-import { GeoJsonCollection as GeoJsonCollection, Shapefile } from '@/types/geometry';
+import { Shapefile } from '@/types/geometry';
 import { parseShp, parseDbf, parsePrj } from './parser';
 import { COORDINATE_SYSTEMS, DEFAULT_STYLE } from './consts';
 import proj4 from 'proj4';
+import type { FeatureCollection } from 'geojson';
 
 // EPSG:4301 (한국 2000) 정의
 proj4.defs('EPSG:4301', '+proj=longlat +ellps=GRS80 +datum=WGS84 +no_defs');
@@ -14,7 +15,11 @@ proj4.defs('EPSG:4301', '+proj=longlat +ellps=GRS80 +datum=WGS84 +no_defs');
  * @param toCrs - 목표 좌표계 (예: 'EPSG:4301')
  * @returns 변환된 좌표 [x, y]
  */
-function transformCoordinates(coordinates: [number, number], fromCrs: string, toCrs: string = 'EPSG:4301'): [number, number] {
+function transformCoordinates(
+  coordinates: [number, number],
+  fromCrs: string,
+  toCrs: string = 'EPSG:4301'
+): [number, number] {
   try {
     // 좌표 변환
     const transformed = proj4(fromCrs, toCrs, coordinates);
@@ -33,15 +38,23 @@ function transformCoordinates(coordinates: [number, number], fromCrs: string, to
  * @param toCrs - 목표 좌표계 (예: 'EPSG:4301')
  * @returns 변환된 GeoJSON 좌표
  */
-function transformGeoJSONCoordinates(coordinates: any, fromCrs: string, toCrs: string = 'EPSG:4301'): any {
+function transformGeoJSONCoordinates(
+  coordinates: any,
+  fromCrs: string,
+  toCrs: string = 'EPSG:4301'
+): any {
   if (!coordinates) return coordinates;
 
-  if (Array.isArray(coordinates) && coordinates.length === 2 && typeof coordinates[0] === 'number') {
+  if (
+    Array.isArray(coordinates) &&
+    coordinates.length === 2 &&
+    typeof coordinates[0] === 'number'
+  ) {
     // 단일 좌표 [x, y]
     return transformCoordinates(coordinates as [number, number], fromCrs, toCrs);
   } else if (Array.isArray(coordinates)) {
     // 좌표 배열 (LineString, MultiPoint 등)
-    return coordinates.map(coord => transformGeoJSONCoordinates(coord, fromCrs, toCrs));
+    return coordinates.map((coord) => transformGeoJSONCoordinates(coord, fromCrs, toCrs));
   }
 
   return coordinates;
@@ -54,12 +67,21 @@ function transformGeoJSONCoordinates(coordinates: any, fromCrs: string, toCrs: s
  * @param toCrs - 목표 좌표계 (예: 'EPSG:4301')
  * @returns 변환된 SHP 데이터
  */
-function projectShp(shpData: GeoJsonCollection, fromCrs?: string, toCrs: string = 'EPSG:4301'): Promise<GeoJsonCollection> {
+function projectShp(
+  shpData: FeatureCollection,
+  fromCrs: string,
+  toCrs: string
+): Promise<FeatureCollection> {
   if (!fromCrs) {
     return Promise.resolve(shpData);
   }
 
+  if (fromCrs === toCrs) {
+    return Promise.resolve(shpData);
+  }
+
   console.log('좌표계 변환 시작:', fromCrs, '->', toCrs);
+  // @ts-ignore - 좌표계 변환 중 타입 오류 무시
   console.log('변환 전 첫 번째 좌표:', shpData.features[0]?.geometry.coordinates);
 
   return new Promise((resolve, reject) => {
@@ -67,12 +89,13 @@ function projectShp(shpData: GeoJsonCollection, fromCrs?: string, toCrs: string 
     const totalFeatures = features.length;
     const numWorkers = navigator.hardwareConcurrency || 4;
     const chunkSize = Math.ceil(totalFeatures / numWorkers);
-    
+
     console.log(`총 ${totalFeatures}개의 좌표를 ${numWorkers}개의 Worker로 분산 처리합니다.`);
 
     const totalStartTime = performance.now();
-    const workers = Array.from({ length: numWorkers }, () => 
-      new Worker(new URL('./coordinate-worker.ts', import.meta.url))
+    const workers = Array.from(
+      { length: numWorkers },
+      () => new Worker(new URL('./coordinate-worker.ts', import.meta.url))
     );
 
     const results: any[] = [];
@@ -82,28 +105,30 @@ function projectShp(shpData: GeoJsonCollection, fromCrs?: string, toCrs: string 
     // Worker 메시지 핸들러
     const handleMessage = (e: MessageEvent) => {
       const { features, featureCount, startIndex, endIndex } = e.data;
-      
+
       // 결과 저장
       results.push({ features, startIndex, endIndex });
       completedWorkers++;
       processedFeatures += featureCount;
 
       // 진행 상황 표시
-      const progress = (processedFeatures / totalFeatures * 100).toFixed(1);
-      console.log(`Worker ${completedWorkers}/${numWorkers} 완료: ${featureCount}개 처리 (${progress}%)`);
+      const progress = ((processedFeatures / totalFeatures) * 100).toFixed(1);
+      console.log(
+        `Worker ${completedWorkers}/${numWorkers} 완료: ${featureCount}개 처리 (${progress}%)`
+      );
 
       // 모든 Worker가 완료되면 결과 병합
       if (completedWorkers === numWorkers) {
         // 시작 인덱스 순으로 정렬
         results.sort((a, b) => a.startIndex - b.startIndex);
-        
+
         // 모든 결과 병합
-        const allFeatures = results.flatMap(result => result.features);
-        
+        const allFeatures = results.flatMap((result) => result.features);
+
         // 전체 종료 시간 기록 및 계산
         const totalEndTime = performance.now();
         const totalElapsedTime = (totalEndTime - totalStartTime).toFixed(2);
-        
+
         console.log('변환 후 첫 번째 좌표:', allFeatures[0]?.geometry.coordinates);
         console.log('좌표계 변환 완료');
         console.log(`총 소요 시간: ${totalElapsedTime}ms`);
@@ -111,11 +136,13 @@ function projectShp(shpData: GeoJsonCollection, fromCrs?: string, toCrs: string 
         console.log(`사용된 Worker 수: ${numWorkers}개`);
 
         // 메모리 정리
-        workers.forEach(worker => worker.terminate());
+        workers.forEach((worker) => worker.terminate());
         results.length = 0;
 
         // 완료 메시지 표시
-        alert(`좌표 변환 완료\n총 소요 시간: ${totalElapsedTime}ms\n변환된 좌표 수: ${allFeatures.length}개\n사용된 Worker 수: ${numWorkers}개`);
+        alert(
+          `좌표 변환 완료\n총 소요 시간: ${totalElapsedTime}ms\n변환된 좌표 수: ${allFeatures.length}개\n사용된 Worker 수: ${numWorkers}개`
+        );
 
         resolve({
           ...shpData,
@@ -127,12 +154,12 @@ function projectShp(shpData: GeoJsonCollection, fromCrs?: string, toCrs: string 
     // Worker 에러 핸들러
     const handleError = (error: ErrorEvent) => {
       console.error('Worker 에러:', error);
-      workers.forEach(worker => worker.terminate());
+      workers.forEach((worker) => worker.terminate());
       reject(error);
     };
 
     // 각 Worker에 이벤트 리스너 등록
-    workers.forEach(worker => {
+    workers.forEach((worker) => {
       worker.onmessage = handleMessage;
       worker.onerror = handleError;
     });
@@ -141,7 +168,7 @@ function projectShp(shpData: GeoJsonCollection, fromCrs?: string, toCrs: string 
     workers.forEach((worker, index) => {
       const startIndex = index * chunkSize;
       const endIndex = Math.min(startIndex + chunkSize, totalFeatures);
-      
+
       worker.postMessage({
         features: features.slice(startIndex, endIndex),
         fromCrs,
@@ -165,11 +192,10 @@ export async function loadShapefile(filePath: string): Promise<Shapefile> {
 
     // 파일들을 병렬로 로드하고 파싱
     const [shpBuffer, dbfData, prjData] = await Promise.all([
-      fetch(shpPath)
-        .then((res) => {
-          if (!res.ok) throw new Error(`Failed to load SHP file: ${res.statusText}`);
-          return res.arrayBuffer();
-        }),
+      fetch(shpPath).then((res) => {
+        if (!res.ok) throw new Error(`Failed to load SHP file: ${res.statusText}`);
+        return res.arrayBuffer();
+      }),
       fetch(dbfPath)
         .then((res) => {
           if (!res.ok) {
@@ -200,18 +226,17 @@ export async function loadShapefile(filePath: string): Promise<Shapefile> {
     // TODO - 테스트 목적으로 10개 항목만 선택
     const limitedCombined = {
       ...combined,
-      features: combined.features.slice(0, 200)
+      features: combined.features.slice(0, 200),
     };
-    
+
     // 원본 데이터 대신 제한된 데이터 사용
     //combined = limitedCombined;
-
 
     // 좌표계 변환
     const projected = await projectShp(combined, prjData, COORDINATE_SYSTEMS.EPSG3375);
 
     // GeoJsonCollection 형식으로 변환
-    const geojson: GeoJsonCollection = {
+    const geojson: FeatureCollection = {
       type: projected.type,
       features: projected.features.map((feature) => ({
         type: feature.type,
@@ -221,7 +246,7 @@ export async function loadShapefile(filePath: string): Promise<Shapefile> {
     };
 
     // Shapefile 객체 생성 및 도형 타입에 따른 스타일 적용
-    const getStyleByGeometryType = (geojson: GeoJsonCollection) => {
+    const getStyleByGeometryType = (geojson: FeatureCollection) => {
       const firstFeature = geojson.features[0];
       if (!firstFeature) return DEFAULT_STYLE.polygon;
 
@@ -249,7 +274,7 @@ export async function loadShapefile(filePath: string): Promise<Shapefile> {
 /**
  * SHP와 DBF 데이터를 결합합니다.
  */
-function combineShpDbf(data: [GeoJsonCollection, Record<string, any>[]]): GeoJsonCollection {
+function combineShpDbf(data: [FeatureCollection, Record<string, any>[]]): FeatureCollection {
   const [shpData, dbfData] = data;
 
   if (!dbfData || dbfData.length === 0) {

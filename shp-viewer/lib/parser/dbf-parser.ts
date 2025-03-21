@@ -1,10 +1,4 @@
 /**
- * DBF 파일 파싱을 위한 유틸리티 함수
- */
-
-import type { GeoJsonCollection } from '@/types/geometry';
-
-/**
  * DBF 파일을 파싱하여 레코드 배열로 변환합니다.
  * @param dbfBuffer - DBF 파일 버퍼
  * @returns 레코드 배열

@@ -1,5 +1,6 @@
-import { Bounds, GeoJsonFeature, Shapefile } from '@/types/geometry';
+import { Bounds, Shapefile } from '@/types/geometry';
 import { MAP_CONSTANTS } from './consts';
+import { Feature } from 'geojson';
 
 // 경계 계산 함수
 const calculateBounds = (visibleShapefiles: Shapefile[]): Bounds => {
@@ -12,7 +13,7 @@ const calculateBounds = (visibleShapefiles: Shapefile[]): Bounds => {
   visibleShapefiles.forEach((shapefile) => {
     if (!shapefile.visible) return;
 
-    shapefile.geojson.features.forEach((feature) => {
+    shapefile.geojson.features.forEach((feature: Feature) => {
       const { geometry } = feature;
       hasFeatures = true;
 

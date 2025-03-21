@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useAtom } from 'jotai';
 import { selectedShapefileAtom } from '@/lib/store';
 import { Button } from '@/components/ui/button';
-
+import type { Feature } from 'geojson';
 export default function AttributeTable() {
   const [selectedShapefile] = useAtom(selectedShapefileAtom);
   const [currentPage, setCurrentPage] = useState(1);
@@ -19,7 +19,7 @@ export default function AttributeTable() {
 
     // 모든 속성 키 추출
     const allKeys = new Set<string>();
-    features.forEach((feature) => {
+    features.forEach((feature: Feature) => {
       if (feature.properties) {
         Object.keys(feature.properties).forEach((key) => allKeys.add(key));
       }
@@ -69,7 +69,7 @@ export default function AttributeTable() {
               </tr>
             </thead>
             <tbody>
-              {currentFeatures.map((feature, index) => (
+              {currentFeatures.map((feature: Feature, index: number) => (
                 <tr key={index} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/30'}>
                   {properties.map((prop) => (
                     <td key={`${index}-${prop}`} className="px-4 py-2 border-t">

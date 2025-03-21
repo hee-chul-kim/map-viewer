@@ -2,8 +2,19 @@
  * SHP 파일 파싱을 위한 유틸리티 함수
  */
 
-import type { GeoJsonCollection } from '@/types/geometry';
 export { parseDbf } from './dbf-parser';
+import type {
+  Feature,
+  FeatureCollection,
+  GeoJsonObject,
+  Geometry,
+  LineString,
+  MultiLineString,
+  MultiPoint,
+  MultiPolygon,
+  Point,
+  Polygon,
+} from 'geojson';
 import { SHAPE_TYPE } from '../consts';
 
 /**
@@ -11,7 +22,7 @@ import { SHAPE_TYPE } from '../consts';
  * @param shpBuffer - SHP 파일 버퍼
  * @returns GeoJSON 형식으로 변환된 데이터
  */
-export async function parseShp(shpBuffer: ArrayBuffer): Promise<GeoJsonCollection> {
+export async function parseShp(shpBuffer: ArrayBuffer): Promise<FeatureCollection> {
   try {
     // SHP 파일 헤더 파싱
     const view = new DataView(shpBuffer);
@@ -51,7 +62,7 @@ export async function parseShp(shpBuffer: ArrayBuffer): Promise<GeoJsonCollectio
 
     // 헤더 크기는 100바이트
     let offset = 100;
-    const features = [];
+    const features: Feature[] = [];
 
     // 레코드 파싱
     while (offset < fileLength) {
@@ -68,7 +79,7 @@ export async function parseShp(shpBuffer: ArrayBuffer): Promise<GeoJsonCollectio
       const recordShapeType = view.getInt32(recordOffset, true);
 
       // 도형 타입에 따라 파싱
-      let geometry;
+      let geometry: Geometry | null;
 
       switch (recordShapeType) {
         case SHAPE_TYPE.POINT:
@@ -147,7 +158,7 @@ function getShapeTypeName(shapeType: number): string {
 /**
  * Point 도형을 파싱합니다.
  */
-function parsePoint(view: DataView, offset: number) {
+function parsePoint(view: DataView, offset: number): Point {
   const x = view.getFloat64(offset, true);
   const y = view.getFloat64(offset + 8, true);
 
@@ -160,7 +171,7 @@ function parsePoint(view: DataView, offset: number) {
 /**
  * Polyline 도형을 파싱합니다.
  */
-function parsePolyline(view: DataView, offset: number) {
+function parsePolyline(view: DataView, offset: number): LineString | MultiLineString {
   // 파트 수 (라인 수)
   const numParts = view.getInt32(offset + 32, true);
 
@@ -209,7 +220,7 @@ function parsePolyline(view: DataView, offset: number) {
 /**
  * Polygon 도형을 파싱합니다.
  */
-function parsePolygon(view: DataView, offset: number) {
+function parsePolygon(view: DataView, offset: number): Polygon {
   // 파트 수 (링 수)
   const numParts = view.getInt32(offset + 32, true);
 
@@ -264,7 +275,7 @@ function parsePolygon(view: DataView, offset: number) {
 /**
  * MultiPoint 도형을 파싱합니다.
  */
-function parseMultiPoint(view: DataView, offset: number) {
+function parseMultiPoint(view: DataView, offset: number): MultiPoint {
   // 포인트 수
   const numPoints = view.getInt32(offset + 32, true);
 

@@ -15,6 +15,7 @@
     "@radix-ui/react-slider": "^1.1.2",
     "@radix-ui/react-tabs": "^1.0.4",
     "@radix-ui/react-toast": "^1.1.5",
+    "@types/geojson": "^7946.0.16",
     "@types/proj4": "^2.5.6",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",

@@ -1,6 +1,7 @@
-import { GeoJsonFeature, Shapefile } from '@/types/geometry';
+import { Shapefile } from '@/types/geometry';
 import { transformCoordinates } from './geometry';
 import { MAP_CONSTANTS } from './consts';
+import { Feature } from 'geojson';
 
 type RenderContext = {
   ctx: CanvasRenderingContext2D;
@@ -110,7 +111,7 @@ const renderMultiPolygon = (context: RenderContext, coordinates: [number, number
  */
 const renderFeature = (
   ctx: CanvasRenderingContext2D,
-  feature: GeoJsonFeature,
+  feature: Feature,
   style: Shapefile['style'],
   scale: number,
   offset: { x: number; y: number },
