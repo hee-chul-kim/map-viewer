@@ -29,12 +29,9 @@ function transformGeoJSONCoordinates(coordinates: any, fromCrs: string, toCrs: s
 // Worker 메시지 핸들러
 self.onmessage = (e) => {
   const { features, fromCrs, toCrs, startIndex, endIndex } = e.data;
-  
-  // 시작 시간 기록
-  const startTime = performance.now();
 
   // 지정된 범위의 features만 변환
-  const transformedFeatures = features.slice(startIndex, endIndex).map((feature: any) => ({
+  const transformedFeatures = features.map((feature: any) => ({
     ...feature,
     geometry: {
       ...feature.geometry,
@@ -42,14 +39,9 @@ self.onmessage = (e) => {
     },
   }));
 
-  // 종료 시간 기록
-  const endTime = performance.now();
-  const elapsedTime = (endTime - startTime).toFixed(2);
-
   // 결과 전송
   self.postMessage({
     features: transformedFeatures,
-    elapsedTime,
     featureCount: transformedFeatures.length,
     startIndex,
     endIndex,

@@ -65,20 +65,19 @@ function projectShp(shpData: GeoJsonCollection, fromCrs?: string, toCrs: string 
   return new Promise((resolve, reject) => {
     const features = shpData.features;
     const totalFeatures = features.length;
-    const numWorkers = navigator.hardwareConcurrency || 4; // CPU 코어 수만큼 Worker 생성
+    const numWorkers = navigator.hardwareConcurrency || 4;
     const chunkSize = Math.ceil(totalFeatures / numWorkers);
     
     console.log(`총 ${totalFeatures}개의 좌표를 ${numWorkers}개의 Worker로 분산 처리합니다.`);
 
-    // 전체 시작 시간 기록
     const totalStartTime = performance.now();
-
     const workers = Array.from({ length: numWorkers }, () => 
       new Worker(new URL('./coordinate-worker.ts', import.meta.url))
     );
 
     const results: any[] = [];
     let completedWorkers = 0;
+    let processedFeatures = 0;
 
     // Worker 메시지 핸들러
     const handleMessage = (e: MessageEvent) => {
@@ -87,8 +86,11 @@ function projectShp(shpData: GeoJsonCollection, fromCrs?: string, toCrs: string 
       // 결과 저장
       results.push({ features, startIndex, endIndex });
       completedWorkers++;
+      processedFeatures += featureCount;
 
-      console.log(`Worker ${completedWorkers}/${numWorkers} 완료: ${featureCount}개 처리`);
+      // 진행 상황 표시
+      const progress = (processedFeatures / totalFeatures * 100).toFixed(1);
+      console.log(`Worker ${completedWorkers}/${numWorkers} 완료: ${featureCount}개 처리 (${progress}%)`);
 
       // 모든 Worker가 완료되면 결과 병합
       if (completedWorkers === numWorkers) {
@@ -104,6 +106,15 @@ function projectShp(shpData: GeoJsonCollection, fromCrs?: string, toCrs: string 
         
         console.log('변환 후 첫 번째 좌표:', allFeatures[0]?.geometry.coordinates);
         console.log('좌표계 변환 완료');
+        console.log(`총 소요 시간: ${totalElapsedTime}ms`);
+        console.log(`변환된 좌표 수: ${allFeatures.length}개`);
+        console.log(`사용된 Worker 수: ${numWorkers}개`);
+
+        // 메모리 정리
+        workers.forEach(worker => worker.terminate());
+        results.length = 0;
+
+        // 완료 메시지 표시
         alert(`좌표 변환 완료\n총 소요 시간: ${totalElapsedTime}ms\n변환된 좌표 수: ${allFeatures.length}개\n사용된 Worker 수: ${numWorkers}개`);
 
         resolve({
@@ -116,6 +127,7 @@ function projectShp(shpData: GeoJsonCollection, fromCrs?: string, toCrs: string 
     // Worker 에러 핸들러
     const handleError = (error: ErrorEvent) => {
       console.error('Worker 에러:', error);
+      workers.forEach(worker => worker.terminate());
       reject(error);
     };
 
@@ -131,7 +143,7 @@ function projectShp(shpData: GeoJsonCollection, fromCrs?: string, toCrs: string 
       const endIndex = Math.min(startIndex + chunkSize, totalFeatures);
       
       worker.postMessage({
-        features,
+        features: features.slice(startIndex, endIndex),
         fromCrs,
         toCrs,
         startIndex,
