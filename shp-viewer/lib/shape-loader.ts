@@ -4,6 +4,9 @@ import { parseShp, parseDbf, parsePrj } from './parser';
 import { COORDINATE_SYSTEMS, DEFAULT_STYLE } from './consts';
 import proj4 from 'proj4';
 
+// EPSG:4301 (한국 2000) 정의
+proj4.defs('EPSG:4301', '+proj=longlat +ellps=GRS80 +datum=WGS84 +no_defs');
+
 /**
  * 좌표를 지정된 좌표계로 변환합니다.
  * @param coordinates - 변환할 좌표 [x, y]
@@ -11,19 +14,11 @@ import proj4 from 'proj4';
  * @param toCrs - 목표 좌표계 (예: 'EPSG:4301')
  * @returns 변환된 좌표 [x, y]
  */
-function transformCoordinates(coordinates: [number, number], fromCrs: string, toCrs: string = COORDINATE_SYSTEMS.EPSG3375): [number, number] {
-  if (!fromCrs) {
-    // 좌표계 정보가 없으면 그대로 반환
-    return coordinates;
-  }
-
+function transformCoordinates(coordinates: [number, number], fromCrs: string, toCrs: string = 'EPSG:4301'): [number, number] {
   try {
-    debugger
     // 좌표 변환
-    const [x, y] = coordinates;
     const transformed = proj4(fromCrs, toCrs, coordinates);
-    console.log(`좌표 변환: [${x}, ${y}] -> [${transformed[0]}, ${transformed[1]}]`);
-    
+    //console.log(`좌표 변환: [${coordinates[0]}, ${coordinates[1]}] -> [${transformed[0]}, ${transformed[1]}]`);
     return transformed;
   } catch (error) {
     console.warn('좌표 변환 실패:', error);
@@ -34,11 +29,11 @@ function transformCoordinates(coordinates: [number, number], fromCrs: string, to
 /**
  * GeoJSON 좌표를 지정된 좌표계로 변환합니다.
  * @param coordinates - 변환할 GeoJSON 좌표
- * @param fromCrs - 원본 좌표계
- * @param toCrs - 목표 좌표계
+ * @param fromCrs - 원본 좌표계 (WKT 형식)
+ * @param toCrs - 목표 좌표계 (예: 'EPSG:4301')
  * @returns 변환된 GeoJSON 좌표
  */
-function transformGeoJSONCoordinates(coordinates: any, fromCrs: string, toCrs: string): any {
+function transformGeoJSONCoordinates(coordinates: any, fromCrs: string, toCrs: string = 'EPSG:4301'): any {
   if (!coordinates) return coordinates;
 
   if (Array.isArray(coordinates) && coordinates.length === 2 && typeof coordinates[0] === 'number') {
@@ -55,34 +50,95 @@ function transformGeoJSONCoordinates(coordinates: any, fromCrs: string, toCrs: s
 /**
  * SHP 데이터의 좌표를 지정된 좌표계로 변환합니다.
  * @param shpData - 변환할 SHP 데이터
- * @param fromCrs - 원본 좌표계
- * @param toCrs - 목표 좌표계
+ * @param fromCrs - 원본 좌표계 (WKT 형식)
+ * @param toCrs - 목표 좌표계 (예: 'EPSG:4301')
  * @returns 변환된 SHP 데이터
  */
-function projectShp(shpData: GeoJsonCollection, fromCrs: string, toCrs: string): GeoJsonCollection {
+function projectShp(shpData: GeoJsonCollection, fromCrs?: string, toCrs: string = 'EPSG:4301'): Promise<GeoJsonCollection> {
   if (!fromCrs) {
-    console.log('좌표계 정보가 없어 변환을 건너뜁니다.');
-    return shpData;
+    return Promise.resolve(shpData);
   }
 
   console.log('좌표계 변환 시작:', fromCrs, '->', toCrs);
   console.log('변환 전 첫 번째 좌표:', shpData.features[0]?.geometry.coordinates);
 
-  const transformedFeatures = shpData.features.map(feature => ({
-    ...feature,
-    geometry: {
-      ...feature.geometry,
-      coordinates: transformGeoJSONCoordinates(feature.geometry.coordinates, fromCrs, toCrs),
-    },
-  }));
+  return new Promise((resolve, reject) => {
+    const features = shpData.features;
+    const totalFeatures = features.length;
+    const numWorkers = navigator.hardwareConcurrency || 4; // CPU 코어 수만큼 Worker 생성
+    const chunkSize = Math.ceil(totalFeatures / numWorkers);
+    
+    console.log(`총 ${totalFeatures}개의 좌표를 ${numWorkers}개의 Worker로 분산 처리합니다.`);
 
-  console.log('변환 후 첫 번째 좌표:', transformedFeatures[0]?.geometry.coordinates);
-  console.log('좌표계 변환 완료');
+    // 전체 시작 시간 기록
+    const totalStartTime = performance.now();
 
-  return {
-    ...shpData,
-    features: transformedFeatures,
-  };
+    const workers = Array.from({ length: numWorkers }, () => 
+      new Worker(new URL('./coordinate-worker.ts', import.meta.url))
+    );
+
+    const results: any[] = [];
+    let completedWorkers = 0;
+
+    // Worker 메시지 핸들러
+    const handleMessage = (e: MessageEvent) => {
+      const { features, featureCount, startIndex, endIndex } = e.data;
+      
+      // 결과 저장
+      results.push({ features, startIndex, endIndex });
+      completedWorkers++;
+
+      console.log(`Worker ${completedWorkers}/${numWorkers} 완료: ${featureCount}개 처리`);
+
+      // 모든 Worker가 완료되면 결과 병합
+      if (completedWorkers === numWorkers) {
+        // 시작 인덱스 순으로 정렬
+        results.sort((a, b) => a.startIndex - b.startIndex);
+        
+        // 모든 결과 병합
+        const allFeatures = results.flatMap(result => result.features);
+        
+        // 전체 종료 시간 기록 및 계산
+        const totalEndTime = performance.now();
+        const totalElapsedTime = (totalEndTime - totalStartTime).toFixed(2);
+        
+        console.log('변환 후 첫 번째 좌표:', allFeatures[0]?.geometry.coordinates);
+        console.log('좌표계 변환 완료');
+        alert(`좌표 변환 완료\n총 소요 시간: ${totalElapsedTime}ms\n변환된 좌표 수: ${allFeatures.length}개\n사용된 Worker 수: ${numWorkers}개`);
+
+        resolve({
+          ...shpData,
+          features: allFeatures,
+        });
+      }
+    };
+
+    // Worker 에러 핸들러
+    const handleError = (error: ErrorEvent) => {
+      console.error('Worker 에러:', error);
+      reject(error);
+    };
+
+    // 각 Worker에 이벤트 리스너 등록
+    workers.forEach(worker => {
+      worker.onmessage = handleMessage;
+      worker.onerror = handleError;
+    });
+
+    // 각 Worker에 작업 할당
+    workers.forEach((worker, index) => {
+      const startIndex = index * chunkSize;
+      const endIndex = Math.min(startIndex + chunkSize, totalFeatures);
+      
+      worker.postMessage({
+        features,
+        fromCrs,
+        toCrs,
+        startIndex,
+        endIndex,
+      });
+    });
+  });
 }
 
 export async function loadShapefile(filePath: string): Promise<Shapefile> {
@@ -128,15 +184,24 @@ export async function loadShapefile(filePath: string): Promise<Shapefile> {
     const shpData = await parseShp(shpBuffer);
 
     // SHP와 DBF 데이터 결합
-    const parsedGeojson = combineShpDbf([shpData, dbfData]);
+    let combined = combineShpDbf([shpData, dbfData]);
+    // TODO - 테스트 목적으로 10개 항목만 선택
+    const limitedCombined = {
+      ...combined,
+      features: combined.features.slice(0, 200)
+    };
+    
+    // 원본 데이터 대신 제한된 데이터 사용
+    //combined = limitedCombined;
+
 
     // 좌표계 변환
-    const projectedShpData = projectShp(parsedGeojson, prjData, COORDINATE_SYSTEMS.EPSG3375);
+    const projected = await projectShp(combined, prjData, COORDINATE_SYSTEMS.EPSG3375);
 
     // GeoJsonCollection 형식으로 변환
     const geojson: GeoJsonCollection = {
-      type: projectedShpData.type,
-      features: projectedShpData.features.map((feature) => ({
+      type: projected.type,
+      features: projected.features.map((feature) => ({
         type: feature.type,
         geometry: feature.geometry,
         properties: feature.properties || {},
