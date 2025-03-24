@@ -66,9 +66,18 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
   }, []);
 
   useLayoutEffect(() => {
+    // Canvas 왼쪽 offset
+    // e.g. -(125 * 144 * 1.0)
+    let tempX = -(minX * baseScale * scale);
+    // 화면 중앙 기준으로 확대/축소 하기 위해 Canvas 너비 증가값의 절반만큼 뺀다
+    tempX -= canvasSize.width * ((scale - 1) / 2);
+
+    let tempY = canvasSize.height + minY * baseScale * scale;
+    tempY += canvasSize.height * ((scale - 1) / 2);
+
     setInitOffset({
-      x: -(minX * baseScale * scale),
-      y: canvasSize.height + minY * baseScale * scale,
+      x: tempX,
+      y: tempY,
     });
   }, [canvasSize, scale]);
 
@@ -188,6 +197,21 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
       ctx.fillText(text, canvas.width - 10, canvas.height - 10);
     }
   }, [shapefiles, canvasSize, scale, offset, hoveredFeature, cursorCoords]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        setScale((prev) => Math.max(0.1, Math.min(10, prev + 0.1)));
+      } else if (e.key === '-') {
+        e.preventDefault();
+        setScale((prev) => Math.max(0.1, Math.min(10, prev - 0.1)));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // 마우스 이벤트 핸들러
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
