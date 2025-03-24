@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { renderTooltip } from './tooltip';
 import type { Feature } from 'geojson';
+import { detectCollision } from '@/lib/collision';
 
 interface CanvasMapProps {
   shapefiles: Shapefile[];
@@ -68,16 +69,16 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
   useLayoutEffect(() => {
     // Canvas 왼쪽 offset
     // e.g. -(125 * 144 * 1.0)
-    let tempX = -(minX * baseScale * scale);
+    let initX = -(minX * baseScale * scale);
     // 화면 중앙 기준으로 확대/축소 하기 위해 Canvas 너비 증가값의 절반만큼 뺀다
-    tempX -= canvasSize.width * ((scale - 1) / 2);
+    initX -= canvasSize.width * ((scale - 1) / 2);
 
-    let tempY = canvasSize.height + minY * baseScale * scale;
-    tempY += canvasSize.height * ((scale - 1) / 2);
+    let initY = canvasSize.height + minY * baseScale * scale;
+    initY += canvasSize.height * ((scale - 1) / 2);
 
     setInitOffset({
-      x: tempX,
-      y: tempY,
+      x: initX,
+      y: initY,
     });
   }, [canvasSize, scale]);
 
@@ -86,59 +87,7 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
   }, [initOffset]);
 
   // 피처 충돌 감지 함수 (마우스 호버링용)
-  const isPointInFeature = (
-    x: number,
-    y: number,
-    feature: Feature,
-    ctx: CanvasRenderingContext2D
-  ): boolean => {
-    const { geometry } = feature;
-
-    if (geometry.type === 'Point') {
-      const [geoX, geoY] = geometry.coordinates as [number, number];
-      const { x: canvasX, y: canvasY } = transformCoordinates(scale, offset, geoX, geoY);
-
-      const distance = Math.sqrt(Math.pow(x - canvasX, 2) + Math.pow(y - canvasY, 2));
-      return distance <= 5 * scale;
-    } else if (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon') {
-      // 다각형 충돌 감지를 위해 캔버스 API 활용
-      ctx.beginPath();
-
-      if (geometry.type === 'Polygon') {
-        // 외부 링
-        (geometry.coordinates as [number, number][][])[0].forEach(([geoX, geoY], i) => {
-          const { x: canvasX, y: canvasY } = transformCoordinates(scale, offset, geoX, geoY);
-
-          if (i === 0) {
-            ctx.moveTo(canvasX, canvasY);
-          } else {
-            ctx.lineTo(canvasX, canvasY);
-          }
-        });
-      } else if (geometry.type === 'MultiPolygon') {
-        (geometry.coordinates as [number, number][][][]).forEach(
-          (polygon: [number, number][][]) => {
-            // 외부 링
-            polygon[0].forEach(([geoX, geoY], i) => {
-              const { x: canvasX, y: canvasY } = transformCoordinates(scale, offset, geoX, geoY);
-
-              if (i === 0) {
-                ctx.moveTo(canvasX, canvasY);
-              } else {
-                ctx.lineTo(canvasX, canvasY);
-              }
-            });
-          }
-        );
-      }
-
-      ctx.closePath();
-      return ctx.isPointInPath(x, y) as boolean;
-    }
-
-    // 라인 및 기타 도형은 단순화된 충돌 감지 (정확한 구현은 복잡함)
-    return false;
-  };
+  const isPointInFeature = detectCollision(scale, offset);
 
   // 캔버스 렌더링
   useEffect(() => {
