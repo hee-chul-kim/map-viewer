@@ -33,8 +33,11 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [scale, setScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 }); // 드래그로 변경된 View Offset
-  const [initOffset, setInitOffset] = useState({ ...offset }); // View Offset 초기값
+
+  const [initOffset, setInitOffset] = useState({ x: 0, y: 0 }); // View Offset 초기값
+  const [offsetDelta, setOffsetDelta] = useState({ x: 0, y: 0 }); // 드래그로 변경된 View Offset
+  const [offset, setOffset] = useState({ x: 0, y: 0 }); // 현재 Offset
+
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(null);
@@ -83,8 +86,8 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
   }, [canvasSize, scale]);
 
   useLayoutEffect(() => {
-    setOffset(initOffset);
-  }, [initOffset]);
+    setOffset({ x: initOffset.x + offsetDelta.x, y: initOffset.y + offsetDelta.y });
+  }, [initOffset, offsetDelta]);
 
   // 피처 충돌 감지 함수 (마우스 호버링용)
   const isPointInFeature = detectCollision(scale, offset);
@@ -186,7 +189,7 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
       const deltaX = e.clientX - dragStart.x;
       const deltaY = e.clientY - dragStart.y;
 
-      setOffset((prev) => ({
+      setOffsetDelta((prev) => ({
         x: prev.x + deltaX,
         y: prev.y + deltaY,
       }));
@@ -260,6 +263,7 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
   const handleReset = () => {
     setScale(1);
     setInitOffset((prev) => Object.assign({}, prev));
+    setOffsetDelta({ x: 0, y: 0 });
   };
 
   return (
