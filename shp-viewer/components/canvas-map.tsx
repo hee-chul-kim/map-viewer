@@ -7,6 +7,7 @@ import { renderFeature } from '@/lib/renderer';
 import { MAP_CONSTANTS } from '@/lib/consts';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { renderTooltip } from './tooltip';
 import type { Feature } from 'geojson';
 
 interface CanvasMapProps {
@@ -37,6 +38,7 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(null);
   const [showPopup, setShowPopup] = useState(true); // 팝업 표시 여부 상태 추가
+  const [cursorCoords, setCursorCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   // 캔버스 크기 설정
   useLayoutEffect(() => {
@@ -167,48 +169,25 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
     // 호버된 피처가 있으면 툴팁 표시
     if (hoveredFeature) {
       const { feature, mouseX, mouseY } = hoveredFeature;
-
-      // 툴팁 배경
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.strokeStyle = '#333';
-      ctx.lineWidth = 1;
-
-      const properties = feature.properties || {};
-      const lines = Object.entries(properties).map(([key, value]) => `${key}: ${value}`);
-
-      const lineHeight = 20;
-      const padding = 10;
-      const tooltipWidth = 200;
-      const tooltipHeight = lines.length * lineHeight + padding * 2;
-
-      // 툴팁이 화면 밖으로 나가지 않도록 위치 조정
-      let tooltipX = mouseX + 10;
-      let tooltipY = mouseY + 10;
-
-      if (tooltipX + tooltipWidth > canvas.width) {
-        tooltipX = mouseX - tooltipWidth - 10;
-      }
-
-      if (tooltipY + tooltipHeight > canvas.height) {
-        tooltipY = mouseY - tooltipHeight - 10;
-      }
-
-      // 툴팁 그리기
-      ctx.beginPath();
-      ctx.roundRect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 5);
-      ctx.fill();
-      ctx.stroke();
-
-      // 텍스트 그리기
-      ctx.fillStyle = '#333';
-      ctx.font = '12px Arial';
-      ctx.textBaseline = 'top';
-
-      lines.forEach((line, i) => {
-        ctx.fillText(line, tooltipX + padding, tooltipY + padding + i * lineHeight);
+      renderTooltip(ctx, {
+        feature,
+        mouseX,
+        mouseY,
+        canvasWidth: canvas.width,
+        canvasHeight: canvas.height,
       });
     }
-  }, [shapefiles, canvasSize, scale, offset, hoveredFeature]);
+
+    // 커서 좌표 표시
+    if (cursorCoords) {
+      const text = `위도: ${cursorCoords.lat.toFixed(6)}° / 경도: ${cursorCoords.lng.toFixed(6)}°`;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.font = '12px Arial';
+      ctx.textBaseline = 'bottom';
+      ctx.textAlign = 'right';
+      ctx.fillText(text, canvas.width - 10, canvas.height - 10);
+    }
+  }, [shapefiles, canvasSize, scale, offset, hoveredFeature, cursorCoords]);
 
   // 마우스 이벤트 핸들러
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -223,6 +202,11 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
+
+    // 마우스 위치를 위경도로 변환
+    const geoX = (mouseX - offset.x) / (baseScale * scale);
+    const geoY = -(mouseY - offset.y) / (baseScale * scale);
+    setCursorCoords({ lat: geoY, lng: geoX });
 
     // 드래깅 처리
     if (isDragging) {
@@ -283,6 +267,7 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
   const handleMouseLeave = () => {
     setIsDragging(false);
     setHoveredFeature(null);
+    setCursorCoords(null);
   };
 
   const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {

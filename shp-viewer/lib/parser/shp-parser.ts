@@ -224,6 +224,11 @@ function parsePolygon(view: DataView, offset: number): Polygon {
   // 파트 수 (링 수)
   const numParts = view.getInt32(offset + 32, true);
 
+  // TODO - 테스트. 제거
+  // if (numParts !== 3) {
+  //   return null;
+  // }
+
   // 포인트 수
   const numPoints = view.getInt32(offset + 36, true);
 
@@ -251,20 +256,11 @@ function parsePolygon(view: DataView, offset: number): Polygon {
     rings.push(ring);
   }
 
-  // 폴리곤 구성 (외부 링과 내부 링 구분)
+  // 폴리곤 구성
   // 참고: SHP에서는 외부 링은 시계 방향, 내부 링은 반시계 방향으로 정의됨
-  const coordinates = [];
+  const coordinates = [...rings];
 
-  // TODO - 외부/내부 구분 수정. 3개 이상 있음.
-  // 간단한 구현: 첫 번째 링을 외부 링으로 간주
-  if (rings.length > 0) {
-    coordinates.push(rings[0]);
-
-    // 나머지 링은 내부 링(홀)으로 간주
-    for (let i = 1; i < rings.length; i++) {
-      coordinates.push(rings[i]);
-    }
-  }
+  debugger;
 
   return {
     type: 'Polygon',

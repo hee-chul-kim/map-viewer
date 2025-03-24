@@ -91,7 +91,11 @@ const transformCoordinates = (
 
   // 현재 스케일과 오프셋 적용
   const canvasX = offset.x + x * baseScale * scale;
+  // canvasX - offset.x = x * baseScale * scale;
+  // x = (canvasX - offset.X) / baseScale / scale;
   const canvasY = offset.y - y * baseScale * scale;
+  // y * baseScale * scale = -canvasY + offset.y
+  // y = (-canvasY + offset.y) / baseScale / scale
 
   return { x: canvasX, y: canvasY };
 };

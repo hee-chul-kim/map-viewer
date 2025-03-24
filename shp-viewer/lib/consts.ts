@@ -2,11 +2,11 @@ import { ShapefileStyle } from '@/types/geometry';
 
 // 기본 파일 목록
 export const DEFAULT_FILES = [
-  'files/polygon/WLA.shp',
-  'files/polygon2/SIG.shp',
-  //'files/line/TLLK.shp',
-  //'files/point/PFP.shp',
-  
+  //'files/polygon/WLA.shp',
+  //'files/polygon2/SIG.shp',
+  'files/line/TLLK.shp',
+  'files/point/PFP.shp',
+  //'files/polygon3/3ring.shp',
 ] as const;
 
 // 기본 스타일 설정
@@ -91,8 +91,10 @@ export const SHAPE_TYPE = {
 // 좌표계 상수
 export const COORDINATE_SYSTEMS = {
   // WGS84 좌표계 (EPSG:4326) - 국제 표준 위경도 좌표계
-  EPSG4326: 'PROJCS["PCS_ITRF2000_TM",GEOGCS["GCS_ITRF_2000",DATUM["D_ITRF_2000",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",1000000.0],PARAMETER["False_Northing",2000000.0],PARAMETER["Central_Meridian",127.5],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",38.0],UNIT["Meter",1.0]]',
-  
+  EPSG4326:
+    'PROJCS["PCS_ITRF2000_TM",GEOGCS["GCS_ITRF_2000",DATUM["D_ITRF_2000",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",1000000.0],PARAMETER["False_Northing",2000000.0],PARAMETER["Central_Meridian",127.5],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",38.0],UNIT["Meter",1.0]]',
+
   // 동경측지계 (EPSG:3375) - 한국/일본에서 사용하는 구 좌표계
-  EPSG3375: 'GEOGCS["GCS_Tokyo",DATUM["D_Tokyo",SPHEROID["Bessel_1841",6377397.155,299.1528128]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]'
+  EPSG3375:
+    'GEOGCS["GCS_Tokyo",DATUM["D_Tokyo",SPHEROID["Bessel_1841",6377397.155,299.1528128]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
 } as const;
