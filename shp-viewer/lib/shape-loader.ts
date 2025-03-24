@@ -233,17 +233,7 @@ export async function loadShapefile(filePath: string): Promise<Shapefile> {
     //combined = limitedCombined;
 
     // 좌표계 변환
-    const projected = await projectShp(combined, prjData, COORDINATE_SYSTEMS.EPSG3375);
-
-    // GeoJsonCollection 형식으로 변환
-    const geojson: FeatureCollection = {
-      type: projected.type,
-      features: projected.features.map((feature) => ({
-        type: feature.type,
-        geometry: feature.geometry,
-        properties: feature.properties || {},
-      })),
-    };
+    const geojson = await projectShp(combined, prjData, COORDINATE_SYSTEMS.EPSG3375);
 
     // Shapefile 객체 생성 및 도형 타입에 따른 스타일 적용
     const getStyleByGeometryType = (geojson: FeatureCollection) => {
@@ -260,8 +250,8 @@ export async function loadShapefile(filePath: string): Promise<Shapefile> {
       id: uuidv4(),
       name,
       geojson,
-      visible: true,
       style: getStyleByGeometryType(geojson),
+      visible: true,
     };
 
     return shapefile;

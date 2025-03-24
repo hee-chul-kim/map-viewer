@@ -44,3 +44,17 @@ export interface Coordinates {
   x: number;
   y: number;
 }
+
+export interface GridTile {
+  id: string;
+  bounds: Bounds;
+  features: Feature[];
+}
+
+export interface SpatialGrid {
+  tiles: GridTile[];
+  rows: number;
+  cols: number;
+  tileWidth: number;
+  tileHeight: number;
+}

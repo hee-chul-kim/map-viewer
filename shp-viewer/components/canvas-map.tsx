@@ -2,7 +2,6 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Shapefile } from '@/types/geometry';
-import { transformCoordinates } from '@/lib/geometry';
 import { renderFeature } from '@/lib/renderer';
 import { MAP_CONSTANTS } from '@/lib/consts';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -10,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { renderTooltip } from './tooltip';
 import type { Feature } from 'geojson';
 import { detectCollision } from '@/lib/collision';
+import { createSpatialGrid, assignFeaturesToGrid, findFeatureAtPoint } from '@/lib/spatial-grid';
+import { SpatialGrid } from '@/types/geometry';
 
 interface CanvasMapProps {
   shapefiles: Shapefile[];
@@ -43,6 +44,7 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
   const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(null);
   const [showPopup, setShowPopup] = useState(true); // 팝업 표시 여부 상태 추가
   const [cursorCoords, setCursorCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [spatialGrid, setSpatialGrid] = useState<SpatialGrid | null>(null);
 
   // 캔버스 크기 설정
   useLayoutEffect(() => {
@@ -88,9 +90,6 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
   useLayoutEffect(() => {
     setOffset({ x: initOffset.x + offsetDelta.x, y: initOffset.y + offsetDelta.y });
   }, [initOffset, offsetDelta]);
-
-  // 피처 충돌 감지 함수 (마우스 호버링용)
-  const isPointInFeature = detectCollision(scale, offset);
 
   // 캔버스 렌더링
   useEffect(() => {
@@ -200,35 +199,35 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
 
     // 호버링 처리
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const visibleShapefiles = shapefiles.filter((shapefile) => shapefile.visible);
-    const hasFeatures = visibleShapefiles.some(
-      (shapefile) => shapefile.geojson?.features?.length > 0
-    );
-    if (!hasFeatures || !showPopup) {
+    if (!ctx || !spatialGrid || !showPopup) {
       setHoveredFeature(null);
       return;
     }
 
-    // 모든 피처를 확인하여 마우스 아래에 있는 피처 찾기
+    const visibleShapefiles = shapefiles.filter((sf) => sf.visible);
+    const hasFeatures = visibleShapefiles.some(
+      (shapefile) => shapefile.geojson?.features?.length > 0
+    );
+    if (!hasFeatures) {
+      setHoveredFeature(null);
+      return;
+    }
+
+    // 공간 그리드를 사용하여 충돌 감지 최적화
     let found = false;
-
     for (const shapefile of visibleShapefiles) {
-      for (const feature of shapefile.geojson.features) {
-        if (isPointInFeature(mouseX, mouseY, feature, ctx)) {
-          setHoveredFeature({
-            shapefile,
-            feature,
-            mouseX,
-            mouseY,
-          });
-          found = true;
-          break;
-        }
-      }
+      const feature = findFeatureAtPoint(spatialGrid, cursorCoords, ctx, scale, offset);
 
-      if (found) break;
+      if (feature) {
+        setHoveredFeature({
+          shapefile,
+          feature,
+          mouseX,
+          mouseY,
+        });
+        found = true;
+        break;
+      }
     }
 
     if (!found) {
@@ -265,6 +264,21 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
     setInitOffset((prev) => Object.assign({}, prev));
     setOffsetDelta({ x: 0, y: 0 });
   };
+
+  // 캔버스 크기가 변경될 때마다 공간 그리드 재생성
+  useEffect(() => {
+    const grid = createSpatialGrid();
+    setSpatialGrid(grid);
+  }, []);
+
+  // shapefile이 변경되거나 공간 그리드가 생성될 때마다 피처 할당
+  useEffect(() => {
+    if (!spatialGrid) return;
+
+    const visibleShapefiles = shapefiles.filter((sf) => sf.visible);
+    const allFeatures = visibleShapefiles.flatMap((sf) => sf.geojson.features);
+    assignFeaturesToGrid(spatialGrid, allFeatures);
+  }, [shapefiles, spatialGrid]);
 
   return (
     <div className="relative w-full h-full">

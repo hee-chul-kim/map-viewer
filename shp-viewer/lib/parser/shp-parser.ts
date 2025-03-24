@@ -111,6 +111,7 @@ export async function parseShp(shpBuffer: ArrayBuffer): Promise<FeatureCollectio
           properties: {
             id: recordNumber - 1, // 0부터 시작하는 인덱스로 변환
           },
+          bbox: (geometry as any).bbox, // 도형에서 계산된 bbox 사용
         });
       }
 
@@ -165,6 +166,7 @@ function parsePoint(view: DataView, offset: number): Point {
   return {
     type: 'Point',
     coordinates: [x, y],
+    bbox: [x, y, x, y], // Point는 단일 좌표이므로 동일한 값 사용
   };
 }
 
@@ -178,6 +180,12 @@ function parsePolyline(view: DataView, offset: number): LineString | MultiLineSt
   // 포인트 수
   const numPoints = view.getInt32(offset + 36, true);
 
+  // bbox 계산을 위한 변수들
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
   // 파트 인덱스 배열
   const parts = [];
   for (let i = 0; i < numParts; i++) {
@@ -190,10 +198,16 @@ function parsePolyline(view: DataView, offset: number): LineString | MultiLineSt
     const pointOffset = offset + 40 + numParts * 4 + i * 16;
     const x = view.getFloat64(pointOffset, true);
     const y = view.getFloat64(pointOffset + 8, true);
+
+    // bbox 업데이트
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+
     points.push([x, y]);
   }
 
-  // TODO - 예제 파일은 파트 항상 1개
   // 파트별로 라인스트링 구성
   const coordinates = [];
   for (let i = 0; i < numParts; i++) {
@@ -203,17 +217,19 @@ function parsePolyline(view: DataView, offset: number): LineString | MultiLineSt
     coordinates.push(line);
   }
 
-  // 라인스트링이 하나면 LineString, 여러 개면 MultiLineString
-  if (coordinates.length === 1) {
+  // TODO - 예제 파일은 파트 항상 1개
+  if (numParts === 1) {
     return {
       type: 'LineString',
       coordinates: coordinates[0],
-    };
+      bbox: [minX, minY, maxX, maxY], // bbox 추가
+    } as LineString;
   } else {
     return {
       type: 'MultiLineString',
-      coordinates,
-    };
+      coordinates: coordinates,
+      bbox: [minX, minY, maxX, maxY], // bbox 추가
+    } as MultiLineString;
   }
 }
 
@@ -224,13 +240,14 @@ function parsePolygon(view: DataView, offset: number): Polygon {
   // 파트 수 (링 수)
   const numParts = view.getInt32(offset + 32, true);
 
-  // TODO - 테스트. 제거
-  // if (numParts !== 3) {
-  //   return null;
-  // }
-
   // 포인트 수
   const numPoints = view.getInt32(offset + 36, true);
+
+  // bbox 계산을 위한 변수들
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
 
   // 파트 인덱스 배열
   const parts = [];
@@ -244,6 +261,13 @@ function parsePolygon(view: DataView, offset: number): Polygon {
     const pointOffset = offset + 40 + numParts * 4 + i * 16;
     const x = view.getFloat64(pointOffset, true);
     const y = view.getFloat64(pointOffset + 8, true);
+
+    // bbox 업데이트
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+
     points.push([x, y]);
   }
 
@@ -260,11 +284,10 @@ function parsePolygon(view: DataView, offset: number): Polygon {
   // 참고: SHP에서는 외부 링은 시계 방향, 내부 링은 반시계 방향으로 정의됨
   const coordinates = [...rings];
 
-  debugger;
-
   return {
     type: 'Polygon',
     coordinates,
+    bbox: [minX, minY, maxX, maxY], // bbox 추가
   };
 }
 
@@ -275,17 +298,31 @@ function parseMultiPoint(view: DataView, offset: number): MultiPoint {
   // 포인트 수
   const numPoints = view.getInt32(offset + 32, true);
 
+  // bbox 계산을 위한 변수들
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
   // 포인트 배열
-  const coordinates = [];
+  const points = [];
   for (let i = 0; i < numPoints; i++) {
     const pointOffset = offset + 36 + i * 16;
     const x = view.getFloat64(pointOffset, true);
     const y = view.getFloat64(pointOffset + 8, true);
-    coordinates.push([x, y]);
+
+    // bbox 업데이트
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+
+    points.push([x, y]);
   }
 
   return {
     type: 'MultiPoint',
-    coordinates,
+    coordinates: points,
+    bbox: [minX, minY, maxX, maxY], // bbox 추가
   };
 }

@@ -3,10 +3,10 @@ import { ShapefileStyle } from '@/types/geometry';
 // 기본 파일 목록
 export const DEFAULT_FILES = [
   'files/polygon/WLA.shp',
-  'files/polygon2/SIG.shp',
-  'files/line/TLLK.shp',
+  //'files/polygon2/SIG.shp',
+  //'files/line/TLLK.shp',
   'files/point/PFP.shp',
-  'files/polygon3/3ring.shp',
+  //'files/polygon3/3ring.shp',
 ] as const;
 
 // 기본 스타일 설정
