@@ -299,17 +299,9 @@ export async function loadShapefile(filePath: string): Promise<Shapefile> {
 
     // SHP와 DBF 데이터 결합
     let combined = combineShpDbf([shpData, dbfData]);
-    // TODO - 테스트 목적으로 10개 항목만 선택
-    const limitedCombined = {
-      ...combined,
-      features: combined.features.slice(0, 200),
-    };
-
-    // 원본 데이터 대신 제한된 데이터 사용
-    //combined = limitedCombined;
 
     // 좌표계 변환
-    const geojson = await projectShp(combined, prjData, COORDINATE_SYSTEMS.EPSG3375);
+    const projected = await projectShp(combined, prjData, COORDINATE_SYSTEMS.EPSG3375);
 
     // Shapefile 객체 생성 및 도형 타입에 따른 스타일 적용
     const getStyleByGeometryType = (geojson: FeatureCollection) => {
@@ -323,17 +315,16 @@ export async function loadShapefile(filePath: string): Promise<Shapefile> {
     };
 
     // 간략화된 버전 생성 (epsilon 값은 적절히 조정 필요)
-    const simplified = simplifyGeoJSON(geojson, 0.001);
+    const simplified = simplifyGeoJSON(projected, 0.001);
 
     const shapefile: Shapefile = {
       id: uuidv4(),
       name,
-      geojson,
+      geojson: projected,
       simplified,
-      style: getStyleByGeometryType(geojson),
+      style: getStyleByGeometryType(projected),
       visible: true,
     };
-
     return shapefile;
   } catch (error) {
     console.error('Error loading shapefile:', error);

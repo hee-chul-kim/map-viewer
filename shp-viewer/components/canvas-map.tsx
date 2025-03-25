@@ -130,17 +130,9 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
         const isHovered =
           hoveredFeature &&
           hoveredFeature.shapefile.id === shapefile.id &&
-          hoveredFeature.feature === feature;
+          hoveredFeature.feature.properties?.ID === feature.properties?.ID; // simplified 일 수도 있으므로 object 비교 대신 id 비교
 
-        renderFeature(
-          ctx,
-          feature,
-          shapefile.style,
-          scale,
-          offset,
-          Boolean(isHovered),
-          useSimplified
-        );
+        renderFeature(ctx, feature, shapefile.style, scale, offset, !!isHovered);
       });
     });
 
@@ -159,16 +151,6 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
         canvasWidth: canvas.width,
         canvasHeight: canvas.height,
       });
-    }
-
-    // 커서 좌표 표시
-    if (cursorCoords) {
-      const text = `위도: ${cursorCoords.lat.toFixed(6)}° / 경도: ${cursorCoords.lng.toFixed(6)}°`;
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      ctx.font = '12px Arial';
-      ctx.textBaseline = 'bottom';
-      ctx.textAlign = 'right';
-      ctx.fillText(text, canvas.width - 10, canvas.height - 10);
     }
   }, [shapefiles, scale, offset, hoveredFeature, canvasSize, spatialGrid]);
 
@@ -309,6 +291,13 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
         onMouseLeave={handleMouseLeave}
         onWheel={handleWheel}
       />
+
+      {/* 위경도 좌표 표시 */}
+      {cursorCoords && (
+        <div className="absolute bottom-4 right-4 bg-white/90 px-3 py-1.5 rounded shadow text-sm">
+          위도: {cursorCoords.lat.toFixed(6)}° / 경도: {cursorCoords.lng.toFixed(6)}°
+        </div>
+      )}
 
       {/* 컨트롤 패널 */}
       <div className="absolute top-4 right-4 bg-white p-2 rounded shadow space-y-2">

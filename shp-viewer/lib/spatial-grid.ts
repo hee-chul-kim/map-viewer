@@ -6,8 +6,8 @@ import { detectCollision } from './collision';
 import { MAP_CONSTANTS } from '@/lib/consts';
 
 // 위경도 기준 그리드 타일의 크기
-const TILE_LNG_WIDTH = 0.5; // 경도 0.5도
-const TILE_LAT_HEIGHT = 0.5; // 위도 0.5도
+const TILE_LNG_WIDTH = 1; // 경도 0.5도
+const TILE_LAT_HEIGHT = 1; // 위도 0.5도
 
 /**
  * 두 경계(bounds)가 겹치는지 확인합니다.
@@ -76,6 +76,7 @@ export function createSpatialGrid(): SpatialGrid {
  * 피처들을 공간 그리드에 할당합니다.
  */
 export function assignFeaturesToGrid(grid: SpatialGrid, features: Feature[]): void {
+  console.log('assignFeaturesToGrid');
   // 기존 할당 초기화
   grid.tiles.forEach((tile) => {
     tile.features = [];

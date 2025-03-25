@@ -2,7 +2,7 @@ import { ShapefileStyle } from '@/types/geometry';
 
 // 기본 파일 목록
 export const DEFAULT_FILES = [
-  'files/polygon/WLA.shp',
+  //'files/polygon/WLA.shp',
   'files/polygon2/SIG.shp',
   //'files/line/TLLK.shp',
   //'files/point/PFP.shp',

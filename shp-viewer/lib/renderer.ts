@@ -120,8 +120,7 @@ const renderFeature = (
   style: Shapefile['style'],
   scale: number,
   offset: { x: number; y: number },
-  isHovered = false,
-  useSimplified = false
+  isHovered: boolean
 ) => {
   const { geometry } = feature;
 
@@ -197,19 +196,23 @@ export function renderSpatialGrid(
     ctx.closePath();
     ctx.stroke();
 
+    // 타일 ID와 피처 수 표시
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    const { x: canvasX, y: canvasY } = transformCoordinates(scale, offset, centerX, centerY);
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // 타일 ID 표시
+    ctx.fillText(tile.id, canvasX, canvasY - 10);
+
     // 피처 수 표시
     if (tile.features.length > 0) {
-      const centerX = (minX + maxX) / 2;
-      const centerY = (minY + maxY) / 2;
-      const { x: canvasX, y: canvasY } = transformCoordinates(scale, offset, centerX, centerY);
-
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(tile.features.length.toString(), canvasX, canvasY);
+      ctx.fillText(tile.features.length.toString(), canvasX, canvasY + 10);
     }
   });
 }
-
 export { renderFeature };
