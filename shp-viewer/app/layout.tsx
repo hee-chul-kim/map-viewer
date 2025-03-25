@@ -1,20 +1,16 @@
 import type { Metadata } from 'next';
-import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'SHP Viewer - 지리 정보 시각화 도구',
-  description: 'SHP 파일을 웹 브라우저에서 쉽게 시각화하고 분석할 수 있는 도구입니다.',
+  title: 'SHP Viewer',
+  description: 'SHP 파일 뷰어',
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
-      <body className="font-sans">
+      <body>
         {children}
         <Toaster />
       </body>

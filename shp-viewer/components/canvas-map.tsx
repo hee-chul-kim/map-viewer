@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { GeoCoordinate, Shapefile } from '@/types/geometry';
-import { renderFeature } from '@/lib/renderer';
+import { renderFeature, renderSpatialGrid } from '@/lib/renderer';
 import { MAP_CONSTANTS } from '@/lib/consts';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -96,7 +96,7 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
     // 캔버스 초기화
@@ -114,17 +114,40 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
       return;
     }
 
+    // 렌더링 최적화를 위한 설정
+    ctx.imageSmoothingEnabled = false;
+
     // 모든 shapefile 렌더링
     visibleShapefiles.forEach((shapefile) => {
-      shapefile.geojson.features.forEach((feature: Feature) => {
+      // 현재 뷰포트에 있는 피처만 렌더링
+      const useSimplified = scale <= 3; // 스케일이 3 이하일 때 간략화된 버전 사용
+      const source =
+        useSimplified && shapefile.simplified ? shapefile.simplified : shapefile.geojson;
+
+      const features = source.features;
+
+      features.forEach((feature: Feature) => {
         const isHovered =
           hoveredFeature &&
           hoveredFeature.shapefile.id === shapefile.id &&
           hoveredFeature.feature === feature;
 
-        renderFeature(ctx, feature, shapefile.style, scale, offset, Boolean(isHovered));
+        renderFeature(
+          ctx,
+          feature,
+          shapefile.style,
+          scale,
+          offset,
+          Boolean(isHovered),
+          useSimplified
+        );
       });
     });
+
+    // Spatial Grid 렌더링 (feature 위에 그리기)
+    if (spatialGrid) {
+      renderSpatialGrid(ctx, spatialGrid, canvasSize, offset, scale);
+    }
 
     // 호버된 피처가 있으면 툴팁 표시
     if (hoveredFeature) {
@@ -147,7 +170,7 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
       ctx.textAlign = 'right';
       ctx.fillText(text, canvas.width - 10, canvas.height - 10);
     }
-  }, [shapefiles, canvasSize, scale, offset, hoveredFeature, cursorCoords]);
+  }, [shapefiles, scale, offset, hoveredFeature, canvasSize, spatialGrid]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -265,20 +288,13 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
     setOffsetDelta({ x: 0, y: 0 });
   };
 
-  // 캔버스 크기가 변경될 때마다 공간 그리드 재생성
+  // spatial grid 초기화 및 피처 할당
   useEffect(() => {
     const grid = createSpatialGrid();
+    const allFeatures = shapefiles.filter((sf) => sf.visible).flatMap((sf) => sf.geojson.features);
+    assignFeaturesToGrid(grid, allFeatures);
     setSpatialGrid(grid);
-  }, []);
-
-  // shapefile이 변경되거나 공간 그리드가 생성될 때마다 피처 할당
-  useEffect(() => {
-    if (!spatialGrid) return;
-
-    const visibleShapefiles = shapefiles.filter((sf) => sf.visible);
-    const allFeatures = visibleShapefiles.flatMap((sf) => sf.geojson.features);
-    assignFeaturesToGrid(spatialGrid, allFeatures);
-  }, [shapefiles, spatialGrid]);
+  }, [shapefiles]);
 
   return (
     <div className="relative w-full h-full">

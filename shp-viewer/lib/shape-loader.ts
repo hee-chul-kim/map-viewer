@@ -3,7 +3,17 @@ import { Shapefile } from '@/types/geometry';
 import { parseShp, parseDbf, parsePrj } from './parser';
 import { COORDINATE_SYSTEMS, DEFAULT_STYLE } from './consts';
 import proj4 from 'proj4';
-import type { FeatureCollection } from 'geojson';
+import type {
+  FeatureCollection,
+  Feature,
+  Geometry,
+  LineString,
+  MultiLineString,
+  MultiPolygon,
+  Polygon,
+} from 'geojson';
+import { douglasPeuckerLine } from './geometry';
+import { toast } from '@/components/ui/use-toast';
 
 // EPSG:4301 (한국 2000) 정의
 proj4.defs('EPSG:4301', '+proj=longlat +ellps=GRS80 +datum=WGS84 +no_defs');
@@ -139,10 +149,11 @@ function projectShp(
         workers.forEach((worker) => worker.terminate());
         results.length = 0;
 
-        // 완료 메시지 표시
-        alert(
-          `좌표 변환 완료\n총 소요 시간: ${totalElapsedTime}ms\n변환된 좌표 수: ${allFeatures.length}개\n사용된 Worker 수: ${numWorkers}개`
-        );
+        // 완료 메시지를 toast로 표시
+        toast({
+          title: '좌표 변환 완료',
+          description: `총 소요 시간: ${totalElapsedTime}ms\n변환된 좌표 수: ${allFeatures.length}개\n사용된 Worker 수: ${numWorkers}개`,
+        });
 
         resolve({
           ...shpData,
@@ -155,6 +166,11 @@ function projectShp(
     const handleError = (error: ErrorEvent) => {
       console.error('Worker 에러:', error);
       workers.forEach((worker) => worker.terminate());
+      toast({
+        variant: 'destructive',
+        title: '오류',
+        description: '좌표 변환 중 오류가 발생했습니다.',
+      });
       reject(error);
     };
 
@@ -178,6 +194,66 @@ function projectShp(
       });
     });
   });
+}
+
+/**
+ * GeoJSON을 간략화합니다.
+ * @param geojson - 원본 GeoJSON
+ * @param epsilon - 간략화 임계값
+ * @returns 간략화된 GeoJSON
+ */
+function simplifyGeoJSON(geojson: FeatureCollection, epsilon: number): FeatureCollection {
+  return {
+    type: 'FeatureCollection',
+    features: geojson.features.map((feature) => {
+      const { geometry } = feature;
+      let simplifiedGeometry = { ...geometry };
+
+      switch (geometry.type) {
+        case 'LineString': {
+          const lineString = geometry as LineString;
+          simplifiedGeometry = {
+            ...geometry,
+            coordinates: douglasPeuckerLine(lineString.coordinates, epsilon),
+          };
+          break;
+        }
+        case 'Polygon': {
+          const polygon = geometry as Polygon;
+          simplifiedGeometry = {
+            ...geometry,
+            coordinates: polygon.coordinates.map((ring) => douglasPeuckerLine(ring, epsilon)),
+          };
+          break;
+        }
+        case 'MultiLineString': {
+          const multiLineString = geometry as MultiLineString;
+          simplifiedGeometry = {
+            ...geometry,
+            coordinates: multiLineString.coordinates.map((line) =>
+              douglasPeuckerLine(line, epsilon)
+            ),
+          };
+          break;
+        }
+        case 'MultiPolygon': {
+          const multiPolygon = geometry as MultiPolygon;
+          simplifiedGeometry = {
+            ...geometry,
+            coordinates: multiPolygon.coordinates.map((polygon) =>
+              polygon.map((ring) => douglasPeuckerLine(ring, epsilon))
+            ),
+          };
+          break;
+        }
+      }
+
+      return {
+        ...feature,
+        geometry: simplifiedGeometry as Geometry,
+      };
+    }),
+  };
 }
 
 export async function loadShapefile(filePath: string): Promise<Shapefile> {
@@ -246,10 +322,14 @@ export async function loadShapefile(filePath: string): Promise<Shapefile> {
       return DEFAULT_STYLE.polygon;
     };
 
+    // 간략화된 버전 생성 (epsilon 값은 적절히 조정 필요)
+    const simplified = simplifyGeoJSON(geojson, 0.001);
+
     const shapefile: Shapefile = {
       id: uuidv4(),
       name,
       geojson,
+      simplified,
       style: getStyleByGeometryType(geojson),
       visible: true,
     };

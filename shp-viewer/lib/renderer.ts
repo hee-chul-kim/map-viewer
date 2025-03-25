@@ -1,7 +1,12 @@
 import { Shapefile } from '@/types/geometry';
 import { transformCoordinates } from './geometry';
 import { MAP_CONSTANTS } from './consts';
-import { Feature } from 'geojson';
+import { Feature, Position } from 'geojson';
+import { douglasPeuckerLine } from './geometry';
+import { SpatialGrid } from '@/types/geometry';
+
+// 기본 스케일
+const baseScale = 144;
 
 type RenderContext = {
   ctx: CanvasRenderingContext2D;
@@ -115,7 +120,8 @@ const renderFeature = (
   style: Shapefile['style'],
   scale: number,
   offset: { x: number; y: number },
-  isHovered = false
+  isHovered = false,
+  useSimplified = false
 ) => {
   const { geometry } = feature;
 
@@ -123,10 +129,11 @@ const renderFeature = (
   const strokeColor = isHovered ? '#ff0000' : style.strokeColor || style.color;
   const lineWidth = isHovered ? style.weight + 1 : style.weight;
   const fillOpacity = isHovered ? Math.min(style.fillOpacity + 0.2, 1) : style.fillOpacity;
+  const fillColor = isHovered ? '#ff0000' : style.color;
 
   ctx.strokeStyle = strokeColor;
   ctx.lineWidth = lineWidth;
-  ctx.fillStyle = style.color.replace('rgb', 'rgba').replace(')', `, ${fillOpacity})`);
+  ctx.fillStyle = fillColor.replace('rgb', 'rgba').replace(')', `, ${fillOpacity})`);
 
   const context: RenderContext = {
     ctx,
@@ -157,5 +164,52 @@ const renderFeature = (
       break;
   }
 };
+
+/**
+ * Spatial Grid를 렌더링합니다.
+ */
+export function renderSpatialGrid(
+  ctx: CanvasRenderingContext2D,
+  spatialGrid: SpatialGrid,
+  canvasSize: { width: number; height: number },
+  offset: { x: number; y: number },
+  scale: number
+): void {
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+  ctx.lineWidth = 1;
+
+  // 각 타일의 경계를 그립니다
+  spatialGrid.tiles.forEach((tile) => {
+    const { minX, minY, maxX, maxY } = tile.bounds;
+
+    // 타일의 네 모서리 좌표를 캔버스 좌표로 변환
+    const topLeft = transformCoordinates(scale, offset, minX, maxY);
+    const topRight = transformCoordinates(scale, offset, maxX, maxY);
+    const bottomLeft = transformCoordinates(scale, offset, minX, minY);
+    const bottomRight = transformCoordinates(scale, offset, maxX, minY);
+
+    // 타일 경계 그리기
+    ctx.beginPath();
+    ctx.moveTo(topLeft.x, topLeft.y);
+    ctx.lineTo(topRight.x, topRight.y);
+    ctx.lineTo(bottomRight.x, bottomRight.y);
+    ctx.lineTo(bottomLeft.x, bottomLeft.y);
+    ctx.closePath();
+    ctx.stroke();
+
+    // 피처 수 표시
+    if (tile.features.length > 0) {
+      const centerX = (minX + maxX) / 2;
+      const centerY = (minY + maxY) / 2;
+      const { x: canvasX, y: canvasY } = transformCoordinates(scale, offset, centerX, centerY);
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(tile.features.length.toString(), canvasX, canvasY);
+    }
+  });
+}
 
 export { renderFeature };

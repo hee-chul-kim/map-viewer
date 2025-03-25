@@ -2,10 +2,10 @@ import { ShapefileStyle } from '@/types/geometry';
 
 // 기본 파일 목록
 export const DEFAULT_FILES = [
-  //'files/polygon/WLA.shp',
-  //'files/polygon2/SIG.shp',
-  'files/line/TLLK.shp',
-  'files/point/PFP.shp',
+  'files/polygon/WLA.shp',
+  'files/polygon2/SIG.shp',
+  //'files/line/TLLK.shp',
+  //'files/point/PFP.shp',
   //'files/polygon3/3ring.shp',
 ] as const;
 
@@ -39,7 +39,7 @@ export const MAP_CONSTANTS = {
     MIN_X: 124,
     MAX_X: 132,
     MIN_Y: 33.06,
-    MAX_Y: 38.37,
+    MAX_Y: 38.8,
   },
   // 서울 좌표
   SEOUL_COORDINATES: {
