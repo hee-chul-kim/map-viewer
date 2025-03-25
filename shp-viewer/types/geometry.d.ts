@@ -1,21 +1,3 @@
-/**
- * GeoJSON 관련 타입 정의
- */
-
-// export interface GeoJsonFeature {
-//   type: string;
-//   geometry: {
-//     type: string;
-//     coordinates: any;
-//   };
-//   properties: Record<string, any>;
-// }
-
-// export interface GeoJsonCollection {
-//   type: string;
-//   features: GeoJsonFeature[];
-// }
-
 export type ShapefileStyle = {
   color: string;
   strokeColor?: string; // 외곽선 색상 (없으면 color 값 사용)
@@ -40,9 +22,14 @@ export interface Bounds {
   hasFeatures: boolean;
 }
 
-export interface Coordinates {
+export interface Coordinate {
   x: number;
   y: number;
+}
+
+export interface GeoCoordinate {
+  lat: number;
+  lng: number;
 }
 
 export interface GridTile {

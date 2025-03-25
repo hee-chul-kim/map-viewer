@@ -1,5 +1,5 @@
 import { Feature } from 'geojson';
-import { Bounds, GridTile, SpatialGrid } from '@/types/geometry';
+import { Bounds, GeoCoordinate, GridTile, SpatialGrid } from '@/types/geometry';
 import { calculateBounds } from './geometry';
 import { transformCoordinates } from './geometry';
 import { detectCollision } from './collision';
@@ -121,10 +121,7 @@ export function assignFeaturesToGrid(grid: SpatialGrid, features: Feature[]): vo
 /**
  * 주어진 위경도 좌표가 속한 타일을 찾습니다.
  */
-export function findTileAtPoint(
-  grid: SpatialGrid,
-  geoCoords: { lat: number; lng: number }
-): GridTile | null {
+export function findTileAtPoint(grid: SpatialGrid, geoCoords: GeoCoordinate): GridTile | null {
   return (
     grid.tiles.find((tile) => isPointInBounds(geoCoords.lng, geoCoords.lat, tile.bounds)) || null
   );
@@ -135,10 +132,8 @@ export function findTileAtPoint(
  */
 export function findFeatureAtPoint(
   grid: SpatialGrid,
-  geoCoords: { lat: number; lng: number } | null,
-  ctx: CanvasRenderingContext2D,
-  scale: number,
-  offset: { x: number; y: number }
+  geoCoords: GeoCoordinate | null,
+  scale: number
 ): Feature | null {
   if (!geoCoords) return null;
 
@@ -149,7 +144,7 @@ export function findFeatureAtPoint(
   // 해당 타일의 피처들에 대해서만 충돌 감지 수행
   for (const feature of tile.features) {
     // 정확한 충돌 감지 수행
-    if (detectCollision(geoCoords, feature, ctx, scale, offset)) {
+    if (detectCollision(geoCoords, feature, scale)) {
       return feature;
     }
   }

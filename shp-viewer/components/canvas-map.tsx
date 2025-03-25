@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Shapefile } from '@/types/geometry';
+import { GeoCoordinate, Shapefile } from '@/types/geometry';
 import { renderFeature } from '@/lib/renderer';
 import { MAP_CONSTANTS } from '@/lib/consts';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -43,7 +43,7 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(null);
   const [showPopup, setShowPopup] = useState(true); // 팝업 표시 여부 상태 추가
-  const [cursorCoords, setCursorCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [cursorCoords, setCursorCoords] = useState<GeoCoordinate | null>(null);
   const [spatialGrid, setSpatialGrid] = useState<SpatialGrid | null>(null);
 
   // 캔버스 크기 설정
@@ -216,7 +216,7 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
     // 공간 그리드를 사용하여 충돌 감지 최적화
     let found = false;
     for (const shapefile of visibleShapefiles) {
-      const feature = findFeatureAtPoint(spatialGrid, cursorCoords, ctx, scale, offset);
+      const feature = findFeatureAtPoint(spatialGrid, cursorCoords, scale);
 
       if (feature) {
         setHoveredFeature({
