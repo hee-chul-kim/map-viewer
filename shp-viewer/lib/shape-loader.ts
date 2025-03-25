@@ -295,7 +295,7 @@ export async function loadShapefile(filePath: string): Promise<Shapefile> {
     ]);
 
     // SHP 파일 파싱
-    const shpData = await parseShp(shpBuffer);
+    const shpData = await parseShp(shpBuffer, name);
 
     // SHP와 DBF 데이터 결합
     let combined = combineShpDbf([shpData, dbfData]);

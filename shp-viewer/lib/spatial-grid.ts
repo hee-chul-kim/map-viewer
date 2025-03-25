@@ -142,10 +142,15 @@ export function findFeatureAtPoint(
   const tile = findTileAtPoint(grid, geoCoords);
   if (!tile) return null;
 
+  // 역순으로 피처를 검사하여 가장 위에 그려진 피처가 먼저 선택되도록 함
+  const reversedFeatures = [...tile.features].reverse();
+
   // 해당 타일의 피처들에 대해서만 충돌 감지 수행
-  for (const feature of tile.features) {
+  for (const feature of reversedFeatures) {
     // 정확한 충돌 감지 수행
     if (detectCollision(geoCoords, feature, scale)) {
+      if (feature.properties!.id! === 'WLA-13321') debugger;
+
       return feature;
     }
   }

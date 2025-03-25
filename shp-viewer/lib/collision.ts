@@ -145,11 +145,18 @@ function detectPolygonCollision(
     return false;
   }
 
-  // 2. Ray Casting 알고리즘
+  // 2. 모든 coordinates 배열에 대해 Ray Casting 알고리즘 적용
   const coordinates = feature.geometry.coordinates;
-  const polygonPoints: GeoCoordinate[] = coordinates[0].map(([lng, lat]) => ({ lng, lat }));
 
-  return isPointInPolygon(point, polygonPoints);
+  // 각 coordinates 배열에 대해 검사
+  for (const ring of coordinates) {
+    const polygonPoints: GeoCoordinate[] = ring.map(([lng, lat]) => ({ lng, lat }));
+    if (isPointInPolygon(point, polygonPoints)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**

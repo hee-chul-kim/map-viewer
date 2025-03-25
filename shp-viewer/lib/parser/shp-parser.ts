@@ -20,9 +20,13 @@ import { SHAPE_TYPE } from '../consts';
 /**
  * SHP 파일을 파싱하여 GeoJSON으로 변환합니다.
  * @param shpBuffer - SHP 파일 버퍼
+ * @param fileName - SHP 파일 이름
  * @returns GeoJSON 형식으로 변환된 데이터
  */
-export async function parseShp(shpBuffer: ArrayBuffer): Promise<FeatureCollection> {
+export async function parseShp(
+  shpBuffer: ArrayBuffer,
+  fileName: string
+): Promise<FeatureCollection> {
   try {
     // SHP 파일 헤더 파싱
     const view = new DataView(shpBuffer);
@@ -109,7 +113,7 @@ export async function parseShp(shpBuffer: ArrayBuffer): Promise<FeatureCollectio
           type: 'Feature',
           geometry,
           properties: {
-            id: recordNumber - 1, // 0부터 시작하는 인덱스로 변환
+            id: `${fileName}-${recordNumber}`,
           },
           bbox: (geometry as any).bbox, // 도형에서 계산된 bbox 사용
         });
@@ -282,6 +286,8 @@ function parsePolygon(view: DataView, offset: number): Polygon {
 
   // 폴리곤 구성
   // 참고: SHP에서는 외부 링은 시계 방향, 내부 링은 반시계 방향으로 정의됨
+  // TODO - 외부/내부 구분하지 않음. GeoJSON 은 1~N 번째 링은 내부로 간주함.
+  // 충돌 처리 시 외부만 처리해야 하는데 현재 외부/내부 구분 없음. (Canvas 는 외부/내부 구분 자체적으로 함)
   const coordinates = [...rings];
 
   return {

@@ -17,7 +17,6 @@ interface CanvasMapProps {
 }
 
 interface HoveredFeature {
-  shapefile: Shapefile;
   feature: Feature;
   mouseX: number;
   mouseY: number;
@@ -129,8 +128,8 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
       features.forEach((feature: Feature) => {
         const isHovered =
           hoveredFeature &&
-          hoveredFeature.shapefile.id === shapefile.id &&
-          hoveredFeature.feature.properties?.ID === feature.properties?.ID; // simplified 일 수도 있으므로 object 비교 대신 id 비교
+          // simplified 일 수도 있으므로 object 비교 대신 id 비교
+          hoveredFeature.feature.properties!.id! === feature.properties!.id!;
 
         renderFeature(ctx, feature, shapefile.style, scale, offset, !!isHovered);
       });
@@ -219,23 +218,15 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
     }
 
     // 공간 그리드를 사용하여 충돌 감지 최적화
-    let found = false;
-    for (const shapefile of visibleShapefiles) {
-      const feature = findFeatureAtPoint(spatialGrid, cursorCoords, scale);
-
-      if (feature) {
-        setHoveredFeature({
-          shapefile,
-          feature,
-          mouseX,
-          mouseY,
-        });
-        found = true;
-        break;
-      }
-    }
-
-    if (!found) {
+    // 역순으로 검사하여 가장 위에 그려진 shapefile부터 확인
+    const feature = findFeatureAtPoint(spatialGrid, cursorCoords, scale);
+    if (feature) {
+      setHoveredFeature({
+        feature,
+        mouseX,
+        mouseY,
+      });
+    } else {
       setHoveredFeature(null);
     }
   };
