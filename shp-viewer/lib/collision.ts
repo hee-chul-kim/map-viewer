@@ -1,5 +1,5 @@
 import { GeoCoordinate } from '@/types/geometry';
-import { Feature, Point, Polygon } from 'geojson';
+import { Feature, Point, Polygon, LineString } from 'geojson';
 
 /**
  * 두 지점 간의 거리를 하버사인 공식을 사용하여 계산합니다. (단위: km)
@@ -33,10 +33,73 @@ function detectPointCollision(
   const distance = haversineDistance(geoCoords, featurePoint);
 
   // 스케일에 반비례하여 허용 거리 조정 (줌아웃할수록 더 넓은 범위 허용)
-  // 기본 허용 거리를 1km로 설정하고 스케일에 따라 조정
-  const threshold = 1 / scale;
+  // 기본 허용 거리를 10km로 설정하고 스케일에 따라 조정
+  const threshold = 10 / scale;
 
   return distance <= threshold;
+}
+
+/**
+ * 점과 선분 사이의 최단 거리를 계산합니다. (단위: km)
+ */
+function pointToLineSegmentDistance(
+  point: GeoCoordinate,
+  start: GeoCoordinate,
+  end: GeoCoordinate
+): number {
+  const d1 = haversineDistance(point, start);
+  const d2 = haversineDistance(point, end);
+  const lineLength = haversineDistance(start, end);
+
+  // 선분의 양 끝점과의 거리 중 짧은 것을 기본값으로 설정
+  let distance = Math.min(d1, d2);
+
+  // 점이 선분을 수직으로 내린 점이 선분 위에 있는 경우를 처리
+  const dot =
+    ((point.lng - start.lng) * (end.lng - start.lng) +
+      (point.lat - start.lat) * (end.lat - start.lat)) /
+    Math.pow(lineLength, 2);
+
+  if (dot >= 0 && dot <= 1) {
+    // 선분 위로 수선을 내릴 수 있는 경우
+    const proj = {
+      lng: start.lng + dot * (end.lng - start.lng),
+      lat: start.lat + dot * (end.lat - start.lat),
+    };
+    distance = haversineDistance(point, proj);
+  }
+
+  return distance;
+}
+
+/**
+ * LineString 타입의 충돌을 감지합니다.
+ */
+function detectLineStringCollision(
+  point: GeoCoordinate,
+  feature: Feature<LineString>,
+  scale: number
+): boolean {
+  // 1. bbox 검사 (있는 경우에만)
+  if (feature.bbox && !isPointInGeoBBox(point, feature.bbox)) {
+    return false;
+  }
+
+  // 2. 각 선분과의 최단 거리 계산
+  const coordinates = feature.geometry.coordinates;
+  const threshold = 10 / scale; // 10km를 기본 허용 거리로 설정
+
+  for (let i = 0; i < coordinates.length - 1; i++) {
+    const start = { lng: coordinates[i][0], lat: coordinates[i][1] };
+    const end = { lng: coordinates[i + 1][0], lat: coordinates[i + 1][1] };
+    const distance = pointToLineSegmentDistance(point, start, end);
+
+    if (distance <= threshold) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -100,10 +163,12 @@ export function detectCollision(
   switch (feature.geometry.type) {
     case 'Point':
       return detectPointCollision(geoCoords, feature as Feature<Point>, scale);
+    case 'LineString':
+      return detectLineStringCollision(geoCoords, feature as Feature<LineString>, scale);
     case 'Polygon':
       return detectPolygonCollision(geoCoords, feature as Feature<Polygon>, scale);
     default:
-      // 라인 및 기타 도형은 단순화된 충돌 감지 (정확한 구현은 복잡함)
+      // 기타 도형은 단순화된 충돌 감지 (정확한 구현은 복잡함)
       return false;
   }
 }
