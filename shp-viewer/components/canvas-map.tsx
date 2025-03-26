@@ -145,19 +145,10 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
 
     // 캔버스 초기화
     ctx.fillStyle = '#f0f0f0';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, canvas.width, canvas.height); // 보이는 shapefile만 필터링
 
-    // 보이는 shapefile만 필터링
+    // 보이는 shapefile
     const visibleShapefiles = shapefiles.filter((sf) => sf.visible);
-
-    // 피처가 없는 shapefile은 렌더링하지 않음
-    const hasFeatures = visibleShapefiles.some(
-      (shapefile) => shapefile.geojson?.features?.length > 0
-    );
-    if (!hasFeatures) {
-      return;
-    }
-
     // 렌더링 최적화를 위한 설정
     ctx.imageSmoothingEnabled = false;
 
@@ -165,25 +156,26 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
     const visibleTiles = getVisibleTiles();
     console.log('visibleTiles', visibleTiles);
 
-    // 모든 shapefile 렌더링
+    // Layer 순서대로 렌더링
+    // 아니면 1번 타일의 포인트 일부가 2번 타일의 폴리곤에 덮이는 경우 생김
     visibleShapefiles.forEach((shapefile) => {
       // 현재 뷰포트에 있는 피처만 렌더링
       const useSimplified = scale <= 3; // 스케일이 3 이하일 때 간략화된 버전 사용
-      const source =
-        useSimplified && shapefile.simplified ? shapefile.simplified : shapefile.geojson;
 
       // 보이는 tile들의 feature만 렌더링
       visibleTiles.forEach((tile) => {
         const features = useSimplified ? tile.simplifiedFeatures : tile.features;
-        features.forEach((feature: Feature) => {
-          const isHovered =
-            hoveredFeature &&
-            // simplified 일 수도 있으므로 object 비교 대신 id 비교
-            hoveredFeature.feature.properties!.id! === feature.properties!.id!;
+        features
+          .filter((feature) => feature.properties?.fileName === shapefile.name)
+          .forEach((feature: Feature) => {
+            const isHovered =
+              hoveredFeature &&
+              // simplified 일 수도 있으므로 object 비교 대신 id 비교
+              hoveredFeature.feature.properties!.id! === feature.properties!.id!;
 
-          // 피처 렌더링
-          renderFeature(ctx, feature, shapefile.style, scale, offset, !!isHovered);
-        });
+            // 피처 렌더링
+            renderFeature(ctx, feature, shapefile.style, scale, offset, !!isHovered);
+          });
       });
     });
 

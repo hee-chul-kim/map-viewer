@@ -113,7 +113,8 @@ export async function parseShp(
           type: 'Feature',
           geometry,
           properties: {
-            id: `${fileName}-${recordNumber}`,
+            id: `${fileName}-${recordNumber}`, // 다른 파일 feature 와 충돌 방지 위해 사용
+            fileName, // Style 적용 시 사용
           },
           bbox: (geometry as any).bbox, // 도형에서 계산된 bbox 사용
         });

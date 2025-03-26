@@ -1,4 +1,4 @@
-import type { FeatureCollection } from 'geojson';
+import type { FeatureCollection, Feature } from 'geojson';
 
 export type ShapefileStyle = {
   color: string;

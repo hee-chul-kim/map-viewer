@@ -81,14 +81,19 @@ export function assignFeaturesToGrid(
   features: Feature[],
   simplifiedFeatures: Feature[]
 ): void {
-  console.log('assignFeaturesToGrid');
   // 기존 할당 초기화
   grid.tiles.forEach((tile) => {
     tile.features = [];
+    tile.simplifiedFeatures = [];
   });
 
   // 각 피처를 해당하는 타일에 할당
   features.forEach((feature, idx) => {
+    // 지원하지 않는 geometry 타입은 건너뛰기
+    if (!['Point', 'LineString', 'Polygon'].includes(feature.geometry.type)) {
+      return;
+    }
+
     let featureBounds: Bounds;
 
     if (feature.geometry.type === 'Point') {
@@ -121,8 +126,6 @@ export function assignFeaturesToGrid(
       }
     });
   });
-
-  console.log('tiles', grid.tiles);
 }
 
 /**
@@ -155,8 +158,6 @@ export function findFeatureAtPoint(
   for (const feature of reversedFeatures) {
     // 정확한 충돌 감지 수행
     if (detectCollision(geoCoords, feature, scale)) {
-      if (feature.properties!.id! === 'WLA-13321') debugger;
-
       return feature;
     }
   }

@@ -91,27 +91,6 @@ const renderPolygon = (context: RenderContext, coordinates: [number, number][][]
 };
 
 /**
- * 멀티포인트 도형을 렌더링합니다.
- */
-const renderMultiPoint = (context: RenderContext, coordinates: [number, number][]) => {
-  coordinates.forEach((point) => renderPoint(context, point));
-};
-
-/**
- * 멀티라인스트링 도형을 렌더링합니다.
- */
-const renderMultiLineString = (context: RenderContext, coordinates: [number, number][][]) => {
-  coordinates.forEach((line) => renderLineString(context, line));
-};
-
-/**
- * 멀티폴리곤 도형을 렌더링합니다.
- */
-const renderMultiPolygon = (context: RenderContext, coordinates: [number, number][][][]) => {
-  coordinates.forEach((polygon) => renderPolygon(context, polygon));
-};
-
-/**
  * 피처를 렌더링합니다.
  */
 const renderFeature = (
@@ -151,15 +130,6 @@ const renderFeature = (
       break;
     case 'Polygon':
       renderPolygon(context, geometry.coordinates as [number, number][][]);
-      break;
-    case 'MultiPoint':
-      renderMultiPoint(context, geometry.coordinates as [number, number][]);
-      break;
-    case 'MultiLineString':
-      renderMultiLineString(context, geometry.coordinates as [number, number][][]);
-      break;
-    case 'MultiPolygon':
-      renderMultiPolygon(context, geometry.coordinates as [number, number][][][]);
       break;
   }
 };
@@ -215,4 +185,5 @@ export function renderSpatialGrid(
     }
   });
 }
+
 export { renderFeature };
