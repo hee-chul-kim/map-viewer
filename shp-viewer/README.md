@@ -1,24 +1,193 @@
-# SHP Viewer - 지리 정보 시각화 도구
+# SHP Viewer
 
-SHP Viewer는 SHP(Shapefile) 파일을 웹 브라우저에서 쉽게 업로드하고 시각화할 수 있는 웹 애플리케이션입니다.
+SHP 파일을 웹에서 시각화하고 편집할 수 있는 도구입니다.
+
+## 핵심 자료구조
+
+### Shapefile 구조
+
+```mermaid
+classDiagram
+    class Shapefile {
+        +String id
+        +String name
+        +FeatureCollection geojson
+        +FeatureCollection? simplified
+        +ShapefileStyle style
+        +Boolean visible
+    }
+
+    class FeatureCollection {
+        +String type
+        +Feature[] features
+    }
+
+    class Feature {
+        +String type
+        +Geometry geometry
+        +Object properties
+    }
+
+    class Geometry {
+        +String type
+        +Array coordinates
+    }
+
+    class ShapefileStyle {
+        +String color
+        +String? strokeColor
+        +Number weight
+        +Number opacity
+        +Number fillOpacity
+    }
+
+    Shapefile --> FeatureCollection : contains
+    FeatureCollection --> Feature : contains
+    Feature --> Geometry : contains
+    Shapefile --> ShapefileStyle : has
+```
+
+### Spatial Grid 구조
+
+```mermaid
+classDiagram
+    class SpatialGrid {
+        +GridTile[] tiles
+        +Number rows
+        +Number cols
+        +Number tileWidth
+        +Number tileHeight
+    }
+
+    class GridTile {
+        +String id
+        +Bounds bounds
+        +Feature[] features
+        +Feature[] simplifiedFeatures
+    }
+
+    class Bounds {
+        +Number minX
+        +Number minY
+        +Number maxX
+        +Number maxY
+        +Boolean hasFeatures
+    }
+
+    SpatialGrid --> GridTile : contains
+    GridTile --> Bounds : has
+    GridTile --> Feature : contains
+```
+
+### 상태 관리 구조
+
+```mermaid
+classDiagram
+    class Store {
+        +Atom<Shapefile[]> shapefiles
+        +Atom<Shapefile?> selectedShapefile
+        +Atom<ShapefileStyle> selectedShapefileStyle
+    }
+
+    class Shapefile {
+        +String id
+        +String name
+        +FeatureCollection geojson
+        +FeatureCollection? simplified
+        +ShapefileStyle style
+        +Boolean visible
+    }
+
+    Store --> Shapefile : manages
+```
+
+### 페이지 로드 및 렌더링 프로세스
+
+```mermaid
+sequenceDiagram
+    participant map-viewer.tsx
+    participant canvas-map.tsx
+    participant spatial-grid.ts
+    participant renderer.ts
+    participant shape-loader.ts
+    participant parser.ts
+
+    map-viewer.tsx->>shape-loader.ts: loadShapefile()
+    Note over map-viewer.tsx,shape-loader.ts: 파일 업로드 후 Shapefile 로드 요청
+
+    shape-loader.ts->>parser.ts: parseShp(), parseDbf(), parsePrj()
+    Note over shape-loader.ts,parser.ts: 각 파일 형식에 맞게 파싱 수행
+
+    parser.ts->>shape-loader.ts: parseResult 전달
+    Note over parser.ts,shape-loader.ts: 파싱된 데이터를 GeoJSON 형식으로 변환
+
+    shape-loader.ts->>shape-loader.ts: transformCoordinates()
+    Note over shape-loader.ts: 원본 좌표계에서 EPSG:3375로 변환
+
+    shape-loader.ts->>shape-loader.ts: simplify()
+    Note over shape-loader.ts: Douglas-Peucker 알고리즘으로 지오메트리 단순화
+
+    shape-loader.ts->>map-viewer.tsx: transformedData, simplifiedData 전달
+    Note over shape-loader.ts,map-viewer.tsx: 변환 및 단순화된 GeoJSON 데이터 전달
+
+    map-viewer.tsx->>canvas-map.tsx: setShapefile()
+    Note over map-viewer.tsx,canvas-map.tsx: Shapefile 데이터를 캔버스에 설정
+
+    canvas-map.tsx->>spatial-grid.ts: initializeGrid()
+    Note over canvas-map.tsx,spatial-grid.ts: 공간 그리드 초기화 및 설정
+
+    spatial-grid.ts->>spatial-grid.ts: createTiles()
+    Note over spatial-grid.ts: 데이터를 타일 단위로 분할
+
+    spatial-grid.ts->>canvas-map.tsx: getTiles() 반환
+    Note over spatial-grid.ts,canvas-map.tsx: 생성된 타일 정보 반환
+
+    canvas-map.tsx->>canvas-map.tsx: calculateVisibleTiles()
+    Note over canvas-map.tsx: 현재 뷰포트에 보이는 타일만 계산
+
+    canvas-map.tsx->>renderer.ts: renderFeatures()
+    Note over canvas-map.tsx,renderer.ts: 보이는 타일의 피처만 렌더링
+
+    renderer.ts->>renderer.ts: drawFeature()
+    Note over renderer.ts: 각 피처 타입(Point, LineString, Polygon)에 맞게 그리기
+
+    Note over renderer.ts: 1. Point, LineString, Polygon<br/>2. 스타일 적용<br/>3. 호버 효과
+```
 
 ## 주요 기능
 
-- SHP 파일 업로드 및 관리
-- 지도 기반 시각화
-- 레이어 스타일 편집
-- 속성 데이터 조회 및 검색
-- CSV 내보내기
+- SHP 파일 업로드 및 시각화
+- 레이어별 스타일 커스터마이징
+- 레이어 표시/숨김
+- 확대/축소 및 이동
+- 피처 호버 시 정보 표시
+- 좌표계 변환
 
 ## 기술 스택
 
-- Next.js 14 (App Router)
+- Next.js 15
 - TypeScript
-- Leaflet (지도 시각화)
-- Tailwind CSS (스타일링)
-- Shadcn UI (UI 컴포넌트)
-- Zustand (상태 관리)
-- shpjs (SHP 파일 파싱)
+- Tailwind CSS
+- Shadcn UI
+- Jotai (상태 관리)
+- Proj4js (좌표계 변환)
+- Web Workers (좌표계 변환 최적화)
+
+## 설치 및 실행
+
+```bash
+# 의존성 설치
+npm install
+
+# 개발 서버 실행
+npm run dev
+
+# 프로덕션 빌드
+npm run build
+
+# 프로덕션 서버 실행
+npm start
+```
 
 ## 프로젝트 구조
 
@@ -62,7 +231,7 @@ shp-viewer/
 
 ### 필수 요구사항
 
-- Node.js 18.0.0 이상
+- Node.js 22.0.0 이상
 - npm 또는 yarn
 
 ### 설치 및 실행
@@ -84,19 +253,3 @@ yarn dev
 ```
 
 브라우저에서 `http://localhost:3000`으로 접속하여 애플리케이션을 사용할 수 있습니다.
-
-## 사용 방법
-
-1. **파일 업로드**: SHP 파일과 관련 파일(.dbf, .shx)을 함께 업로드합니다.
-2. **레이어 관리**: 업로드된 레이어의 가시성을 관리하고 선택합니다.
-3. **스타일 편집**: 선택한 레이어의 색상, 선 두께, 투명도 등을 조정합니다.
-4. **속성 데이터**: 레이어의 속성 데이터를 조회하고 검색할 수 있습니다.
-5. **CSV 내보내기**: 속성 데이터를 CSV 형식으로 내보낼 수 있습니다.
-
-## 라이선스
-
-MIT
-
-## 기여하기
-
-이슈와 풀 리퀘스트는 언제나 환영합니다. 기여하기 전에 프로젝트의 코드 스타일과 가이드라인을 확인해주세요.
