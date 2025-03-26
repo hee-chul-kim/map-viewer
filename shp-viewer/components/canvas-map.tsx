@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { GeoCoordinate, Shapefile } from '@/types/geometry';
+import { GeoCoordinate, Shapefile, GridTile } from '@/types/geometry';
 import { renderFeature, renderSpatialGrid } from '@/lib/renderer';
 import { MAP_CONSTANTS } from '@/lib/consts';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -9,7 +9,12 @@ import { Label } from '@/components/ui/label';
 import { renderTooltip } from './tooltip';
 import type { Feature } from 'geojson';
 import { detectCollision } from '@/lib/collision';
-import { createSpatialGrid, assignFeaturesToGrid, findFeatureAtPoint } from '@/lib/spatial-grid';
+import {
+  createSpatialGrid,
+  assignFeaturesToGrid,
+  findFeatureAtPoint,
+  findTileAtPoint,
+} from '@/lib/spatial-grid';
 import { SpatialGrid } from '@/types/geometry';
 
 interface CanvasMapProps {
@@ -90,6 +95,46 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
     setOffset({ x: initOffset.x + offsetDelta.x, y: initOffset.y + offsetDelta.y });
   }, [initOffset, offsetDelta]);
 
+  // 현재 보이는 tile을 계산하는 함수
+  const getVisibleTiles = () => {
+    if (!spatialGrid || !canvasRef.current) return [];
+
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+
+    // 캔버스의 네 모서리 좌표를 위경도로 변환
+    const corners = [
+      { x: 0, y: 0 },
+      { x: rect.width, y: 0 },
+      { x: rect.width, y: rect.height },
+      { x: 0, y: rect.height },
+    ].map(({ x, y }) => ({
+      lat: -(y - offset.y) / (baseScale * scale),
+      lng: (x - offset.x) / (baseScale * scale),
+    }));
+
+    // 위경도 범위 계산
+    const bounds = {
+      minX: Math.min(...corners.map((c) => c.lng)),
+      maxX: Math.max(...corners.map((c) => c.lng)),
+      minY: Math.min(...corners.map((c) => c.lat)),
+      maxY: Math.max(...corners.map((c) => c.lat)),
+      hasFeatures: true,
+    };
+
+    // 위경도 범위와 겹치는 모든 tile 찾기
+    const visibleTiles = spatialGrid.tiles.filter((tile) => {
+      return !(
+        tile.bounds.maxX < bounds.minX ||
+        tile.bounds.minX > bounds.maxX ||
+        tile.bounds.maxY < bounds.minY ||
+        tile.bounds.minY > bounds.maxY
+      );
+    });
+
+    return visibleTiles;
+  };
+
   // 캔버스 렌더링
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -116,6 +161,10 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
     // 렌더링 최적화를 위한 설정
     ctx.imageSmoothingEnabled = false;
 
+    // 현재 보이는 tile들 가져오기
+    const visibleTiles = getVisibleTiles();
+    console.log('visibleTiles', visibleTiles);
+
     // 모든 shapefile 렌더링
     visibleShapefiles.forEach((shapefile) => {
       // 현재 뷰포트에 있는 피처만 렌더링
@@ -123,16 +172,18 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
       const source =
         useSimplified && shapefile.simplified ? shapefile.simplified : shapefile.geojson;
 
-      const features = source.features;
+      // 보이는 tile들의 feature만 렌더링
+      visibleTiles.forEach((tile) => {
+        const features = useSimplified ? tile.simplifiedFeatures : tile.features;
+        features.forEach((feature: Feature) => {
+          const isHovered =
+            hoveredFeature &&
+            // simplified 일 수도 있으므로 object 비교 대신 id 비교
+            hoveredFeature.feature.properties!.id! === feature.properties!.id!;
 
-      features.forEach((feature: Feature) => {
-        const isHovered =
-          hoveredFeature &&
-          // simplified 일 수도 있으므로 object 비교 대신 id 비교
-          hoveredFeature.feature.properties!.id! === feature.properties!.id!;
-
-        // 피처 렌더링
-        renderFeature(ctx, feature, shapefile.style, scale, offset, !!isHovered);
+          // 피처 렌더링
+          renderFeature(ctx, feature, shapefile.style, scale, offset, !!isHovered);
+        });
       });
     });
 
