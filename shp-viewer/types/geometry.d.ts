@@ -39,6 +39,7 @@ export interface GridTile {
   id: string;
   bounds: Bounds;
   features: Feature[];
+  simplifiedFeatures: Feature[];
 }
 
 export interface SpatialGrid {

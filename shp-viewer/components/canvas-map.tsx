@@ -131,6 +131,7 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
           // simplified 일 수도 있으므로 object 비교 대신 id 비교
           hoveredFeature.feature.properties!.id! === feature.properties!.id!;
 
+        // 피처 렌더링
         renderFeature(ctx, feature, shapefile.style, scale, offset, !!isHovered);
       });
     });
@@ -264,8 +265,13 @@ export default function CanvasMap({ shapefiles }: CanvasMapProps) {
   // spatial grid 초기화 및 피처 할당
   useEffect(() => {
     const grid = createSpatialGrid();
-    const allFeatures = shapefiles.filter((sf) => sf.visible).flatMap((sf) => sf.geojson.features);
-    assignFeaturesToGrid(grid, allFeatures);
+    const visibleFeatures = shapefiles
+      .filter((sf) => sf.visible)
+      .flatMap((sf) => sf.geojson.features);
+    const simplifiedFeatures = shapefiles
+      .filter((sf) => sf.visible)
+      .flatMap((sf) => sf.simplified?.features ?? []);
+    assignFeaturesToGrid(grid, visibleFeatures, simplifiedFeatures);
     setSpatialGrid(grid);
   }, [shapefiles]);
 

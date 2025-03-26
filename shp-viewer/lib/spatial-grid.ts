@@ -59,6 +59,7 @@ export function createSpatialGrid(): SpatialGrid {
           hasFeatures: false,
         },
         features: [],
+        simplifiedFeatures: [],
       });
     }
   }
@@ -75,7 +76,11 @@ export function createSpatialGrid(): SpatialGrid {
 /**
  * 피처들을 공간 그리드에 할당합니다.
  */
-export function assignFeaturesToGrid(grid: SpatialGrid, features: Feature[]): void {
+export function assignFeaturesToGrid(
+  grid: SpatialGrid,
+  features: Feature[],
+  simplifiedFeatures: Feature[]
+): void {
   console.log('assignFeaturesToGrid');
   // 기존 할당 초기화
   grid.tiles.forEach((tile) => {
@@ -83,7 +88,7 @@ export function assignFeaturesToGrid(grid: SpatialGrid, features: Feature[]): vo
   });
 
   // 각 피처를 해당하는 타일에 할당
-  features.forEach((feature) => {
+  features.forEach((feature, idx) => {
     let featureBounds: Bounds;
 
     if (feature.geometry.type === 'Point') {
@@ -112,6 +117,7 @@ export function assignFeaturesToGrid(grid: SpatialGrid, features: Feature[]): vo
     grid.tiles.forEach((tile) => {
       if (boundsIntersect(featureBounds, tile.bounds)) {
         tile.features.push(feature);
+        tile.simplifiedFeatures.push(simplifiedFeatures[idx]);
       }
     });
   });
