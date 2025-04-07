@@ -18,7 +18,7 @@ export const getShapefileByIdAtom = atom(
 );
 
 // 보이는 shapefile만 필터링
-export const visibleShapefilesAtom = atom((get) => get(shapefilesAtom).filter((sf) => sf.visible)); 
+export const visibleShapefilesAtom = atom((get) => get(shapefilesAtom).filter((sf) => sf.visible));
 
 // Shapefile (Layer) 추가
 export const addShapefileAtom = atom(null, (get, set, shapefile: Shapefile) => {
@@ -43,8 +43,8 @@ export const updateShapefileVisibilityAtom = atom(
   null,
   (get, set, params: { id: string; visible: boolean }) => {
     const { id, visible } = params;
-    const shapefiles = get(shapefilesAtom).map((sf) => 
-      sf.id === id ? { ...sf, visible } : sf // 지정된 shapefile의 가시성 업데이트
+    const shapefiles = get(shapefilesAtom).map(
+      (sf) => (sf.id === id ? { ...sf, visible } : sf) // 지정된 shapefile의 가시성 업데이트
     );
     set(shapefilesAtom, shapefiles);
 
@@ -52,8 +52,8 @@ export const updateShapefileVisibilityAtom = atom(
     if (selectedShapefile?.id === id) {
       const updatedShapefile = shapefiles.find((sf) => sf.id === id);
       if (updatedShapefile) {
-         // 노출 여부 업데이트한 레이어를 선택
-         // TODO - 무조건 선택해도 되나?
+        // 노출 여부 업데이트한 레이어를 선택
+        // TODO - 무조건 선택해도 되나?
         set(selectedShapefileAtom, updatedShapefile);
       }
     }
@@ -65,8 +65,8 @@ export const updateShapefileStyleAtom = atom(
   null,
   (get, set, params: { id: string; style: Partial<ShapefileStyle> }) => {
     const { id, style } = params;
-    const shapefiles = get(shapefilesAtom).map((sf) =>
-      sf.id === id ? { ...sf, style: { ...sf.style, ...style } } : sf // 지정된 shapefile의 스타일 업데이트
+    const shapefiles = get(shapefilesAtom).map(
+      (sf) => (sf.id === id ? { ...sf, style: { ...sf.style, ...style } } : sf) // 지정된 shapefile의 스타일 업데이트
     );
     set(shapefilesAtom, shapefiles);
 
@@ -86,7 +86,7 @@ export const selectShapefileAtom = atom(null, (get, set, id: string | null) => {
     set(selectedShapefileAtom, null); // shapefile 선택 해제
     return;
   }
-  
+
   const shapefile = get(shapefilesAtom).find((sf) => sf.id === id);
   set(selectedShapefileAtom, shapefile || null); // 지정된 ID의 shapefile 선택
 });
@@ -100,7 +100,7 @@ export const selectedShapefileStyleAtom = atom(
   (get, set, newStyle: Partial<ShapefileStyle>) => {
     const selectedShapefile = get(selectedShapefileAtom);
     if (!selectedShapefile) return;
-    
+
     set(updateShapefileStyleAtom, { id: selectedShapefile.id, style: newStyle }); // 선택된 shapefile의 스타일 업데이트
   }
 );

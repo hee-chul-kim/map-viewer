@@ -253,3 +253,62 @@ yarn dev
 ```
 
 브라우저에서 `http://localhost:3000`으로 접속하여 애플리케이션을 사용할 수 있습니다.
+
+## 타입 정의
+
+### GeoJSON 타입
+
+```mermaid
+classDiagram
+    class GeoJSON {
+        <<interface>>
+        +String type
+        +BBox? bbox
+    }
+
+    class Geometry {
+        <<interface>>
+        +String type
+        +Array coordinates
+    }
+
+    class Feature {
+        <<interface>>
+        +String type
+        +Geometry geometry
+        +GeoJsonProperties properties
+        +String|Number? id
+    }
+
+    class FeatureCollection {
+        <<interface>>
+        +String type
+        +Feature[] features
+    }
+
+    class MultiPoint {
+        +String type
+        +Position[] coordinates
+    }
+
+    class LineString {
+        +String type
+        +Position[] coordinates
+    }
+
+    class Polygon {
+        +String type
+        +Position[][] coordinates
+    }
+
+    GeoJSON <|-- Geometry
+    GeoJSON <|-- Feature
+    GeoJSON <|-- FeatureCollection
+
+    Geometry <|-- MultiPoint
+    Geometry <|-- LineString
+    Geometry <|-- Polygon
+
+    Feature --> Geometry : contains
+    FeatureCollection --> Feature : contains
+```
